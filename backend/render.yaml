@@ -1,0 +1,47 @@
+services:
+  - type: web
+    name: mytechwings-api
+    runtime: node
+    plan: standard # bump plan / add instances for horizontal scaling
+    region: singapore
+    buildCommand: npm ci --production=false
+    startCommand: npm start
+    healthCheckPath: /api/v1/health
+    numInstances: 2 # Render load-balances across instances automatically
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGO_URI
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: COOKIE_SECRET
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+      - key: WHATSAPP_NUMBER
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: CLOUDINARY_UPLOAD_FOLDER
+        value: mytechwings
+      - key: MAX_IMAGE_SIZE_MB
+        value: 5
+      - key: MAX_FILE_SIZE_MB
+        value: 10
+
+  - type: redis
+    name: mytechwings-redis
+    plan: starter
+    ipAllowList: []

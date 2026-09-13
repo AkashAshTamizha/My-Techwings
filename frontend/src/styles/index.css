@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-white text-slate-900 antialiased;
+}
+
+/* Reset default browser borders/outlines on interactive and media elements
+   so nothing renders except borders explicitly set by Tailwind classes. */
+a,
+img,
+button {
+  border-style: none;
+  outline: none;
+}
+
+/* visible keyboard focus for accessibility */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
