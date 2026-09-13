@@ -10,7 +10,7 @@ beforeAll(async () => {
   process.env.NODE_ENV = 'test';
   process.env.JWT_SECRET = 'test-secret';
   process.env.COOKIE_SECRET = 'test-cookie-secret';
-  process.env.CLIENT_URL = 'http://localhost:5173';
+  process.env.CLIENT_URL = 'https://my-techwings.onrender.com';
   process.env.REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 
   mongod = await MongoMemoryServer.create();
