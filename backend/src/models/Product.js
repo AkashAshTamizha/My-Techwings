@@ -1,14 +1,14 @@
 const mongoose = require('mongoose');
+const { CATEGORIES } = require('../config/categorySpecs');
 
-const specSchema = new mongoose.Schema(
-  {
-    processor: String,
-    ram: String,
-    storage: String,
-    display: String,
-  },
-  { _id: false }
-);
+// `specs` used to be a fixed sub-schema of exactly four laptop fields
+// (processor/ram/storage/display). It's now a generic string map so any
+// category can persist whatever spec keys it needs (see
+// config/categorySpecs.js for the per-category field definitions) without
+// ever requiring another schema change. Existing laptop documents already
+// store specs as a plain { processor, ram, storage, display } object, which
+// is exactly what a Map of String casts from, so old data keeps working
+// unchanged.
 
 // A single uploaded asset. Every image in the app — product-level or
 // variant-level — now lives on Cloudinary; we only ever persist the secure
@@ -104,13 +104,17 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
       index: true,
-      enum: ['Ultrabook', 'Gaming', 'Business', 'Refurbished', 'CCTV', 'Printer'],
+      enum: CATEGORIES,
     },
     tag: { type: String, enum: ['NEW', 'Refurbished', 'Price Drop', null], default: null },
     price: { type: Number, required: true, index: true },
     compareAtPrice: { type: Number },
-    screenSize: { type: String }, // "13\"-14\"", "15\"-16\"", "17\"+"
-    specs: specSchema,
+    screenSize: { type: String }, // "13\"-14\"", "15\"-16\"", "17\"+" (Laptop-only; harmless if unset for other categories)
+    // Generic, category-driven spec key/values — see config/categorySpecs.js.
+    // A Map of String casts fine from the plain { processor, ram, ... }
+    // objects already stored on existing laptop documents, so old data
+    // keeps reading and writing exactly as before.
+    specs: { type: Map, of: String, default: {} },
     description: { type: String },
     // Cloudinary-backed images. Kept as an ordered array — index 0 (or the
     // entry with isPrimary=true) is the main product image, and drag-reorder

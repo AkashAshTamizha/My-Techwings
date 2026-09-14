@@ -18,6 +18,8 @@ const authRoutes = require('./routes/auth.routes');
 const miscRoutes = require('./routes/misc.routes');
 const aboutRoutes = require('./routes/about.routes');
 const contactRoutes = require('./routes/contact.routes');
+const sliderRoutes = require('./routes/slider.routes');
+const attributeKeyRoutes = require('./routes/attributeKey.routes');
 const AppError = require('./utils/AppError');
 
 const app = express();
@@ -68,6 +70,8 @@ app.use('/api/v1/inquiries', inquiryRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/about', aboutRoutes);
 app.use('/api/v1/contact', contactRoutes);
+app.use('/api/v1/sliders', sliderRoutes);
+app.use('/api/v1/attribute-keys', attributeKeyRoutes);
 app.use('/api/v1', miscRoutes);
 
 app.all('*', (req, res, next) => {

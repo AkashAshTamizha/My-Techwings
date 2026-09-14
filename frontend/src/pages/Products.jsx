@@ -79,7 +79,9 @@ export default function Products() {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-3 mb-6">
-            <h1 className="text-2xl font-bold text-slate-900">Laptops</h1>
+            <h1 className="text-2xl font-bold text-slate-900">
+              {filters.onSale === 'true' ? 'Today’s Deals' : 'Laptops'}
+            </h1>
 
             <div className="flex items-center gap-2 sm:gap-4">
               <button

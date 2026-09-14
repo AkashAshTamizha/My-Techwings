@@ -2,9 +2,10 @@ const Product = require('../models/Product');
 const asyncHandler = require('../middleware/asyncHandler');
 const AppError = require('../utils/AppError');
 const { cacheAside, invalidateByPrefix } = require('../config/redis');
+const { CATEGORY_CONFIG, CATEGORIES, SPEC_FIELDS_BY_CATEGORY, getSpecFields } = require('../config/categorySpecs');
 
 // GET /api/v1/products
-// Supports: category, brand, minPrice, maxPrice, screenSize, processor, search, sort, page, limit
+// Supports: category, brand, minPrice, maxPrice, screenSize, processor, onSale, search, sort, page, limit
 // Result is cached in Redis for 60s per unique query string — the Products
 // grid is read-heavy and identical filter combos are requested repeatedly
 // under load, so this materially cuts DB load at 1,000+ concurrent users.
@@ -17,6 +18,7 @@ exports.getProducts = asyncHandler(async (req, res) => {
     screenSize,
     processor,
     search,
+    onSale,
     sort = 'recommended',
     page = 1,
     limit = 12,
@@ -30,6 +32,9 @@ exports.getProducts = asyncHandler(async (req, res) => {
     if (brand) filter.brand = { $in: brand.split(',') };
     if (screenSize) filter.screenSize = screenSize;
     if (processor) filter['specs.processor'] = new RegExp(processor, 'i');
+    // "Deals" / offer-price products: anything currently marked down, i.e.
+    // compareAtPrice is set and higher than the actual selling price.
+    if (onSale === 'true') filter.$expr = { $gt: ['$compareAtPrice', '$price'] };
     if (minPrice || maxPrice) {
       filter.price = {};
       if (minPrice) filter.price.$gte = Number(minPrice);
@@ -88,7 +93,27 @@ exports.getProductBySlug = asyncHandler(async (req, res) => {
       .lean()
   );
 
-  res.status(200).json({ success: true, product, related });
+  // Ordered list of the spec fields relevant to this product's category, so
+  // the Product Details page renders only what applies (Printer specs for a
+  // printer, CCTV specs for a CCTV camera, etc.) without hard-coding any
+  // category's fields itself.
+  const specFields = getSpecFields(product.category);
+
+  res.status(200).json({ success: true, product, related, specFields });
+});
+
+// GET /api/v1/products/category-specs — the full category → spec-field-list
+// config, used by the Add/Edit Product admin form to render the right inputs
+// as soon as an admin picks a category. Adding a new category only ever
+// requires editing config/categorySpecs.js — this endpoint (and everything
+// that calls it) automatically picks up the change.
+exports.getCategorySpecs = asyncHandler(async (req, res) => {
+  res.status(200).json({
+    success: true,
+    categories: CATEGORIES,
+    categorySpecs: SPEC_FIELDS_BY_CATEGORY,
+    categoryConfig: CATEGORY_CONFIG,
+  });
 });
 
 // GET /api/v1/products/filters — distinct categories, brands, screen sizes and
@@ -97,10 +122,11 @@ exports.getProductBySlug = asyncHandler(async (req, res) => {
 // data instead of a hard-coded list that drifts out of sync with the DB.
 exports.getFilterOptions = asyncHandler(async (req, res) => {
   const filters = await cacheAside('filters:options', 300, async () => {
-    const [categories, brands, screenSizes, priceStats] = await Promise.all([
+    const [categories, brands, screenSizes, processors, priceStats] = await Promise.all([
       Product.distinct('category', { isActive: true }),
       Product.distinct('brand', { isActive: true }),
       Product.distinct('screenSize', { isActive: true, screenSize: { $nin: [null, ''] } }),
+      Product.distinct('specs.processor', { isActive: true, 'specs.processor': { $nin: [null, ''] } }),
       Product.aggregate([
         { $match: { isActive: true } },
         { $group: { _id: null, min: { $min: '$price' }, max: { $max: '$price' } } },
@@ -111,6 +137,7 @@ exports.getFilterOptions = asyncHandler(async (req, res) => {
       categories: categories.filter(Boolean).sort(),
       brands: brands.filter(Boolean).sort(),
       screenSizes: screenSizes.filter(Boolean).sort(),
+      processors: processors.filter(Boolean).sort(),
       priceRange: {
         min: priceStats[0]?.min ?? 0,
         max: priceStats[0]?.max ?? 0,
@@ -140,7 +167,7 @@ exports.getCategorySummary = asyncHandler(async (req, res) => {
 exports.getProductByIdAdmin = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id).lean();
   if (!product) throw new AppError('Product not found', 404);
-  res.status(200).json({ success: true, product });
+  res.status(200).json({ success: true, product, specFields: getSpecFields(product.category) });
 });
 
 exports.createProduct = asyncHandler(async (req, res) => {

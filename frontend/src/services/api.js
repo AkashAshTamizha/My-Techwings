@@ -33,15 +33,26 @@ export const getCategorySummary = () => api.get('/products/categories/summary').
 // Distinct categories/brands/price-range/screen-sizes derived from the DB,
 // used to populate the Filters sidebar instead of hard-coded option lists.
 export const getProductFilters = () => api.get('/products/filters').then((r) => r.data);
+// Category -> dynamic spec-field config (drives the Add/Edit Product form's
+// "which inputs to show" logic; adding a new category server-side needs no
+// frontend code change because this is fetched, not hard-coded).
+export const getCategorySpecs = () => api.get('/products/category-specs').then((r) => r.data);
 
 // ---- Inquiries (user details form -> WhatsApp) ----
 export const submitInquiry = (payload) => api.post('/inquiries', payload).then((r) => r.data);
 
 // ---- Auth (admin) ----
+export const checkAdminExists = () => api.get('/auth/admin-exists').then((r) => r.data);
+export const register = (payload) => api.post('/auth/register', payload).then((r) => r.data);
 export const login = (payload) => api.post('/auth/login', payload).then((r) => r.data);
 export const logout = () => api.post('/auth/logout').then((r) => r.data);
 export const getMe = () => api.get('/auth/me').then((r) => r.data);
 export const updatePassword = (payload) => api.patch('/auth/update-password', payload).then((r) => r.data);
+// Forgot password: step 1 verifies { email, recoveryCode } and returns a
+// short-lived resetToken; step 2 spends that token to set a new password.
+export const forgotPasswordVerify = (payload) => api.post('/auth/forgot-password/verify', payload).then((r) => r.data);
+export const resetPassword = (payload) => api.post('/auth/forgot-password/reset', payload).then((r) => r.data);
+export const regenerateRecoveryCode = (payload) => api.post('/auth/regenerate-recovery-code', payload).then((r) => r.data);
 
 // ---- Admin: Products ----
 export const getProductByIdAdmin = (id) => api.get(`/products/admin/${id}`).then((r) => r.data);
@@ -110,5 +121,20 @@ export const getContactInfoById = (id) => api.get(`/contact/${id}`).then((r) => 
 export const createContactInfo = (payload) => api.post('/contact', payload).then((r) => r.data);
 export const updateContactInfo = (id, payload) => api.patch(`/contact/${id}`, payload).then((r) => r.data);
 export const deleteContactInfo = (id) => api.delete(`/contact/${id}`).then((r) => r.data);
+
+// ---- Slider (public) ----
+export const getSliders = () => api.get('/sliders').then((r) => r.data);
+
+// ---- Admin: Slider ----
+export const getAllSlidersAdmin = () => api.get('/sliders/admin/all').then((r) => r.data);
+export const getSliderById = (id) => api.get(`/sliders/${id}`).then((r) => r.data);
+export const createSlider = (payload) => api.post('/sliders', payload).then((r) => r.data);
+export const updateSlider = (id, payload) => api.patch(`/sliders/${id}`, payload).then((r) => r.data);
+export const deleteSlider = (id) => api.delete(`/sliders/${id}`).then((r) => r.data);
+
+// ---- Admin: Attribute keys (reusable name registry for product/variant
+// "Additional attributes" — see AttributeManager.jsx) ----
+export const getAttributeKeys = () => api.get('/attribute-keys').then((r) => r.data);
+export const createAttributeKey = (name) => api.post('/attribute-keys', { name }).then((r) => r.data);
 
 export default api;

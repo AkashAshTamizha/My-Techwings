@@ -21,13 +21,22 @@ export function AuthProvider({ children }) {
     return data.user;
   };
 
+  // Only ever succeeds server-side while no admin account exists yet
+  // (first-run setup). Returns the full response so the caller can show the
+  // one-time recoveryCode; the admin is signed in immediately afterwards.
+  const register = async ({ name, email, password }) => {
+    const data = await api.register({ name, email, password });
+    setUser(data.user);
+    return data;
+  };
+
   const logout = async () => {
     await api.logout();
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>{children}</AuthContext.Provider>
   );
 }
 

@@ -12,8 +12,10 @@ import {
 } from 'react-icons/fi';
 import { FaApple } from 'react-icons/fa';
 import ProductGrid from '../components/product/ProductGrid';
-import { getProducts } from '../services/api';
-import { SiApple, SiAcer, SiSamsung, SiHp, SiLenovo, SiDell } from 'react-icons/si';
+import HeroSlider from '../components/home/HeroSlider';
+import useCategoryAvailability from '../hooks/useCategoryAvailability';
+import { getProducts, getSliders } from '../services/api';
+import { SiApple, SiAcer, SiSamsung, SiHp, SiLenovo, SiDell, SiToshiba } from 'react-icons/si';
 
 const CATEGORY_META = [
   { key: 'Ultrabook', label: 'Ultrabooks', sub: 'Lightweight & Thin', img: 'https://res.cloudinary.com/dwaebmmgq/image/upload/v1789003829/ChatGPT_Image_Sep_10_2026_06_58_02_AM_s8jufc.png' },
@@ -24,10 +26,29 @@ const CATEGORY_META = [
   { key: 'Printer', label: 'Printers', sub: 'Home & Office', img: 'https://images.pexels.com/photos/11833899/pexels-photo-11833899.jpeg' },
 ];
 
+// Maps a Slider document from the API into the shape HeroSlider expects
+// (heading as an array of line strings + a separate list of which line
+// indices should be highlighted), so the admin-managed content drives the
+// exact same markup the old hardcoded heroSlides.js used to.
+function toHeroSlide(slide) {
+  return {
+    eyebrow: slide.eyebrow || undefined,
+    heading: slide.heading.map((line) => line.text),
+    highlightLines: slide.heading.reduce((acc, line, i) => (line.highlighted ? [...acc, i] : acc), []),
+    description: slide.description,
+    ctaLabel: slide.ctaLabel || undefined,
+    ctaTo: slide.ctaTo || undefined,
+    image: slide.image?.url,
+    alt: slide.alt,
+  };
+}
+
 export default function Home() {
   const [popular, setPopular] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [slides, setSlides] = useState([]);
   const categoryScrollRef = useRef(null);
+  const { isAvailable } = useCategoryAvailability();
 
   const scrollCategories = () => {
     const el = categoryScrollRef.current;
@@ -41,38 +62,20 @@ export default function Home() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Slides are fetched fresh on every Home mount (no client cache) so an
+  // admin update in Slider Management shows up immediately on next visit.
+  useEffect(() => {
+    getSliders()
+      .then((data) => setSlides((data.slides || []).map(toHeroSlide)))
+      .catch(() => setSlides([]));
+  }, []);
+
   return (
     <>
       {/* Hero */}
       <section className="w-full bg-brand-bgHero">
-        <div className="w-full px-4 sm:px-6 py-12 lg:py-16 grid lg:grid-cols-2 gap-10 items-center">
-          <div>
-            <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight text-slate-900">
-              Powerful Laptops.
-              <br />
-              <span className="text-brand-blue">Limitless</span>
-              <br />
-              <span className="text-brand-blue">Possibilities.</span>
-            </h1>
-            <p className="mt-5 text-slate-600 max-w-md">
-              Are you looking for the best Laptop store in Chennai? If yes, then you&apos;re in the right place. We offer
-              the best deals for Laptops in Chennai with exciting offers &amp; benefits.
-            </p>
-            <Link
-              to="/products"
-              className="inline-block mt-6 bg-brand-blue text-white font-semibold px-6 py-3 rounded hover:bg-brand-blueDark transition"
-            >
-              Shop Now →
-            </Link>
-          </div>
-          <div className="rounded-lg overflow-hidden shadow-xl bg-gradient-to-br from-slate-100 to-slate-200 h-72 sm:h-80 lg:h-96">
-            <img
-              src="https://res.cloudinary.com/dwaebmmgq/image/upload/v1789003159/ChatGPT_Image_Sep_10_2026_06_46_37_AM_s08gic.png"
-              onError={(e) => (e.currentTarget.style.display = 'none')}
-              alt="Laptops on a desk"
-              className="w-full h-full object-cover"
-            />
-          </div>
+        <div className="w-full px-4 sm:px-6 py-12 lg:py-16">
+          {slides.length > 0 && <HeroSlider slides={slides} />}
         </div>
 
         <div className="w-full border-t border-white/40 bg-brand-bgHero">
@@ -94,26 +97,42 @@ export default function Home() {
             ref={categoryScrollRef}
             className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 lg:overflow-visible overflow-x-auto scroll-smooth"
           >
-            {CATEGORY_META.map((c) => (
-              <Link
-                key={c.key}
-                to={`/products?category=${c.key}`}
-                className="group bg-white border border-slate-200 rounded-lg overflow-hidden hover:border-brand-blue hover:shadow-md transition"
-              >
-                <div className="h-[150px] w-full bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
-                  <img
-                    src={c.img}
-                    onError={(e) => (e.currentTarget.style.display = 'none')}
-                    alt={c.label}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                  />
-                </div>
-                <div className="p-3 text-center">
-                  <p className="font-semibold text-sm text-slate-900">{c.label}</p>
-                  <p className="text-xs text-slate-400">{c.sub}</p>
-                </div>
-              </Link>
-            ))}
+            {CATEGORY_META.map((c) => {
+              const available = isAvailable(c.key);
+              return (
+                <Link
+                  key={c.key}
+                  to={available ? `/products?category=${c.key}` : `/coming-soon/${c.key}`}
+                  className={`group relative bg-white border border-slate-200 rounded-lg overflow-hidden transition ${
+                    available ? 'hover:border-brand-blue hover:shadow-md' : ''
+                  }`}
+                >
+                  <div className="h-[150px] w-full bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
+                    <img
+                      src={c.img}
+                      onError={(e) => (e.currentTarget.style.display = 'none')}
+                      alt={c.label}
+                      className={`w-full h-full object-cover transition-transform ${
+                        available ? 'group-hover:scale-105' : 'scale-105 blur-[1.5px] brightness-90'
+                      }`}
+                    />
+                  </div>
+                  <div className="p-3 text-center">
+                    <p className="font-semibold text-sm text-slate-900">{c.label}</p>
+                    <p className="text-xs text-slate-400">{c.sub}</p>
+                  </div>
+
+                  {!available && (
+                    <>
+                      <div className="absolute inset-0 bg-white/40" aria-hidden="true" />
+                      <span className="absolute top-2 right-2 bg-brand-navy text-white text-[10px] font-bold tracking-wider px-2 py-1 rounded">
+                        COMING SOON
+                      </span>
+                    </>
+                  )}
+                </Link>
+              );
+            })}
           </div>
           <button
             type="button"
@@ -127,8 +146,8 @@ export default function Home() {
       </section>
 
         {/* Brands banner */}
-            <section className="w-full px-4 sm:px-6 pb-14">
-              <div className="bg-brand-navy rounded-2xl p-8 sm:p-10 lg:p-12 grid lg:grid-cols-2 gap-10 items-center overflow-hidden">
+   <section className="w-full px-4 sm:px-6 pb-14">
+              <div className="bg-brand-navy rounded-2xl p-8 sm:p-10 lg:p-12 grid lg:grid-cols-2 items-center overflow-hidden">
                 <div >
                   <p className="text-brand-blue text-xs font-semibold tracking-widest">LIMITED TIME OFFER</p>
                   <h3 className="text-white text-3xl sm:text-4xl font-extrabold mt-2 leading-tight">
@@ -138,22 +157,23 @@ export default function Home() {
                   </h3>
                   <p className="text-slate-400 mt-3 max-w-sm">Grab exciting offers on premium laptops from leading brands.</p>
                   <Link
-                    to="/products"
+                    to="/products?onSale=true&sort=price_asc"
                     className="inline-block mt-5 bg-brand-blue text-white font-semibold px-5 py-2.5 rounded hover:bg-brand-blueDark transition"
                   >
                     View All Deals →
                   </Link>
                 </div>
       
-      <div className="w-full flex flex-col gap-y-2 sm:gap-y-2">
+      <div className="w-full flex flex-col gap-y-0">
       
         {/* ================= TOP ROW ================= */}
         <div
           className="
             w-full
             grid
-            grid-cols-[40%_15%_15%_15%_15%]
+            grid-cols-[39%_14%_16%_16%_16%]
             items-center
+             h-21 sm:h-13
           "
         >
           {/* Empty - 35% */}
@@ -164,7 +184,7 @@ export default function Home() {
             title="Apple"
             className="w-full flex items-center justify-center"
           >
-            <SiApple className="text-white text-4xl sm:text-6xl" />
+            <SiApple className="text-white text-4xl sm:text-8xl" />
           </div>
       
           {/* Acer - 20% */}
@@ -172,20 +192,20 @@ export default function Home() {
             title="Acer"
             className="w-full flex items-center justify-center"
           >
-            <SiAcer className="text-[#83b81a] text-3xl sm:text-8xl" />
+            <SiAcer className="text-[#83b81a] text-3xl sm:text-9xl" />
           </div>
       
           {/* Samsung - 25% */}
           <div
             title="Samsung"
-            className="w-full flex items-center justify-center"
+            className="w-full flex items-button justify-button"
           >
             <div
               className="
     relative
     flex items-center justify-center
     w-[100px] h-[18px]
-    sm:w-[150px] sm:h-[42px]
+    sm:w-[159px] sm:h-[52px]
     rounded-[50%]
     bg-[#1074C4]
     -rotate-[6deg]
@@ -197,7 +217,7 @@ export default function Home() {
                   relative
                   z-10
                   block
-                  w-[62%]
+                  w-[78%]
                   h-auto
                   rotate-[6deg]
                 "
@@ -217,6 +237,7 @@ export default function Home() {
             grid
             grid-cols-[35%_15%_15%_15%_20%]
             items-center
+            h-25 sm:h-25
           "
         >
            {/* Empty - 30% */}
@@ -226,7 +247,7 @@ export default function Home() {
             title="HP"
             className="w-full flex items-center justify-center"
           >
-            <SiHp className="text-[#0096d6] text-4xl sm:text-6xl" />
+            <SiHp className="text-[#0096d6] text-4xl sm:text-8xl" />
           </div>
       
           {/* Lenovo - 25% */}
@@ -242,11 +263,28 @@ export default function Home() {
             title="Dell"
             className="w-full flex items-center justify-center"
           >
-            <SiDell className="text-[#0096d6] text-5xl sm:text-7xl" />
+            <SiDell className="text-[#0096d6] text-5xl sm:text-8xl" />
           </div>
       
           {/* Empty - 15% */}
-          <div />
+          <div   title="Toshiba"
+            className="w-full flex items-center justify-center" >
+
+                   <div
+              className="
+    relative
+    flex items-center justify-center
+    w-[100px] h-[18px]
+    sm:w-[150px] sm:h-[52px]
+    rounded-[5%]
+     bg-[#e2231a]
+   
+    shadow-md
+  "
+            >
+          <SiToshiba className="text-[#ffffff] text-5xl sm:text-8xl" />
+          </div>
+          </div>
         </div>
       
       </div>
@@ -306,3 +344,9 @@ function WhyItem({ icon, title, desc }) {
     </div>
   );
 }
+
+
+
+
+
+

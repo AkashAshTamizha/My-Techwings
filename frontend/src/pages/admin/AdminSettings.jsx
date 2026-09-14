@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { updatePassword } from '../../services/api';
+import RecoveryCodeModal from '../../components/admin/RecoveryCodeModal';
+import { updatePassword, regenerateRecoveryCode } from '../../services/api';
 
 export default function AdminSettings() {
   const [form, setForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -8,7 +9,27 @@ export default function AdminSettings() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
+  const [recoveryPassword, setRecoveryPassword] = useState('');
+  const [recoveryError, setRecoveryError] = useState('');
+  const [regenerating, setRegenerating] = useState(false);
+  const [newRecoveryCode, setNewRecoveryCode] = useState(null);
+
   const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
+
+  const handleRegenerateSubmit = async (e) => {
+    e.preventDefault();
+    setRecoveryError('');
+    setRegenerating(true);
+    try {
+      const data = await regenerateRecoveryCode({ currentPassword: recoveryPassword });
+      setNewRecoveryCode(data.recoveryCode);
+      setRecoveryPassword('');
+    } catch (err) {
+      setRecoveryError(err.response?.data?.message || 'Failed to regenerate recovery code');
+    } finally {
+      setRegenerating(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -92,6 +113,41 @@ export default function AdminSettings() {
           </button>
         </form>
       </div>
+
+      <div className="bg-white rounded-lg border border-slate-200 p-6 max-w-md mt-6">
+        <h2 className="font-semibold text-slate-900 mb-1">Recovery Code</h2>
+        <p className="text-sm text-slate-500 mb-4">
+          Used to reset your password if you ever get locked out. Regenerating replaces your old
+          code — do this if you&apos;ve lost it or think someone else may have seen it.
+        </p>
+
+        <form onSubmit={handleRegenerateSubmit} className="space-y-4">
+          <Field label="Confirm current password">
+            <input
+              type="password"
+              required
+              value={recoveryPassword}
+              onChange={(e) => setRecoveryPassword(e.target.value)}
+              className="input"
+              autoComplete="current-password"
+            />
+          </Field>
+
+          {recoveryError && <p className="text-sm text-red-600">{recoveryError}</p>}
+
+          <button
+            type="submit"
+            disabled={regenerating}
+            className="bg-white border border-slate-300 text-slate-700 font-semibold px-6 py-2.5 rounded hover:bg-slate-50 disabled:opacity-60"
+          >
+            {regenerating ? 'Regenerating…' : 'Regenerate recovery code'}
+          </button>
+        </form>
+      </div>
+
+      {newRecoveryCode && (
+        <RecoveryCodeModal recoveryCode={newRecoveryCode} onAcknowledge={() => setNewRecoveryCode(null)} />
+      )}
 
       <style>{`.input { width: 100%; border: 1px solid #E2E8F0; border-radius: 6px; padding: 8px 12px; font-size: 14px; outline: none; } .input:focus { border-color: #2563EB; }`}</style>
     </AdminLayout>

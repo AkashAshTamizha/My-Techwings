@@ -9,10 +9,23 @@ import InquiryModal from '../components/product/InquiryModal';
 import { getProductBySlug } from '../services/api';
 import { formatINR, getImageUrl } from '../utils/format';
 
+// Small cosmetic lookup for a few well-known spec keys; anything else (new
+// categories' fields) just falls back to a generic tag icon. Purely visual —
+// which fields actually render is driven entirely by the `specFields` the
+// API returns for the product's category (see categorySpecs.js on the
+// backend), not by this map.
+const SPEC_ICONS = {
+  processor: <FiCpu />,
+  ram: <FiDatabase />,
+  storage: <FiHardDrive />,
+  display: <FiDisplay />,
+};
+
 export default function ProductDetail() {
   const { slug } = useParams();
   const [product, setProduct] = useState(null);
   const [related, setRelated] = useState([]);
+  const [specFields, setSpecFields] = useState([]);
   const [selectedVariantId, setSelectedVariantId] = useState(null);
   const [activeImage, setActiveImage] = useState(0);
   const [failedImages, setFailedImages] = useState(() => new Set());
@@ -25,6 +38,7 @@ export default function ProductDetail() {
     setNotFound(false);
     setProduct(null);
     setRelated([]);
+    setSpecFields([]);
     setSelectedVariantId(null);
     setActiveImage(0);
     setFailedImages(new Set());
@@ -37,6 +51,7 @@ export default function ProductDetail() {
         const fetchedProduct = data.product;
         setProduct(fetchedProduct);
         setRelated(data.related || []);
+        setSpecFields(data.specFields || []);
         const firstActiveVariant = (fetchedProduct.variants || []).find((v) => v.isActive !== false);
         setSelectedVariantId(firstActiveVariant?._id ?? null);
       })
@@ -122,34 +137,27 @@ export default function ProductDetail() {
             )}
           </div>
           {images.length > 1 && (
-            <div className="grid grid-cols-4 gap-3 mt-4">
-              {images.slice(0, 4).map((img, i) => {
-                const remaining = images.length - 4;
-                const isLastVisibleSlot = i === 3 && remaining > 0;
-                return (
-                  <button
-                    key={galleryImages?.[i]?.publicId || img || i}
-                    onClick={() => setActiveImage(i)}
-                    className={`relative aspect-square w-full rounded-lg border-2 bg-white overflow-hidden ${
-                      activeImage === i ? 'border-brand-blue' : 'border-slate-200'
-                    }`}
-                  >
-                    {img && (
-                      <img
-                        src={img}
-                        alt=""
-                        className="w-full h-full object-cover"
-                        onError={() => setFailedImages((prev) => new Set(prev).add(img))}
-                      />
-                    )}
-                    {isLastVisibleSlot && (
-                      <span className="absolute inset-0 bg-brand-blue/10 flex items-center justify-center text-sm font-semibold text-brand-blue">
-                        +{remaining} More
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+            <div className="grid grid-cols-4 sm:grid-cols-5 gap-3 mt-4">
+              {images.map((img, i) => (
+                <button
+                  key={galleryImages?.[i]?.publicId || img || i}
+                  onClick={() => setActiveImage(i)}
+                  className={`relative aspect-square w-full rounded-lg border-2 bg-white overflow-hidden ${
+                    activeImage === i ? 'border-brand-blue' : 'border-slate-200'
+                  }`}
+                >
+                  {img ? (
+                    <img
+                      src={img}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      onError={() => setFailedImages((prev) => new Set(prev).add(img))}
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200" />
+                  )}
+                </button>
+              ))}
             </div>
           )}
         </div>
@@ -183,10 +191,17 @@ export default function ProductDetail() {
           />
 
           <div className="grid grid-cols-2 gap-3 mt-6">
-            <SpecCard icon={<FiCpu />} label="Processor" value={product.specs?.processor} />
-            <SpecCard icon={<FiDatabase />} label="RAM" value={product.specs?.ram} />
-            <SpecCard icon={<FiHardDrive />} label="Storage" value={product.specs?.storage} />
-            <SpecCard icon={<FiDisplay />} label="Display" value={product.specs?.display} />
+            {/* Only the spec fields defined for this product's category are
+                shown (Laptop shows Processor/RAM/..., Printer shows Print
+                Type/Speed/..., etc.) — see the `specFields` the API returns. */}
+            {specFields.map((field) => (
+              <SpecCard
+                key={field.key}
+                icon={SPEC_ICONS[field.key] || <FiTag />}
+                label={field.label}
+                value={product.specs?.[field.key]}
+              />
+            ))}
             {extraSpecs.map((field) => (
               <SpecCard key={field.name} icon={<FiTag />} label={field.name} value={field.values.join(', ')} />
             ))}
@@ -199,7 +214,7 @@ export default function ProductDetail() {
             disabled={outOfStock}
             className="mt-8 bg-brand-blue text-white font-semibold px-8 py-3 rounded hover:bg-brand-blueDark disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {outOfStock ? 'Out of Stock' : 'Need This Laptop'}
+            {outOfStock ? 'Out of Stock' : 'Need This Product'}
           </button>
         </div>
       </div>

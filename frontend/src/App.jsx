@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 import ScrollToTop from './components/common/ScrollToTop';
 import Home from './pages/Home';
+import ComingSoon from './pages/ComingSoon';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
 import About from './pages/About';
@@ -11,6 +12,7 @@ import Service from './pages/Service';
 import Contact from './pages/Contact';
 import NotFound from './pages/NotFound';
 import AdminLogin from './pages/admin/AdminLogin';
+import AdminForgotPassword from './pages/admin/AdminForgotPassword';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminProductForm from './pages/admin/AdminProductForm';
 import AdminServices from './pages/admin/AdminServices';
@@ -19,6 +21,8 @@ import AdminAbout from './pages/admin/AdminAbout';
 import AdminAboutForm from './pages/admin/AdminAboutForm';
 import AdminContact from './pages/admin/AdminContact';
 import AdminContactForm from './pages/admin/AdminContactForm';
+import AdminSliders from './pages/admin/AdminSliders';
+import AdminSliderForm from './pages/admin/AdminSliderForm';
 import AdminSettings from './pages/admin/AdminSettings';
 
 export default function App() {
@@ -32,6 +36,14 @@ export default function App() {
           element={
             <Layout>
               <Home />
+            </Layout>
+          }
+        />
+        <Route
+          path="/coming-soon/:category"
+          element={
+            <Layout>
+              <ComingSoon />
             </Layout>
           }
         />
@@ -78,6 +90,7 @@ export default function App() {
 
         {/* Admin */}
         <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/forgot-password" element={<AdminForgotPassword />} />
         <Route
           path="/admin/products"
           element={
@@ -173,6 +186,31 @@ export default function App() {
           element={
             <ProtectedRoute>
               <AdminContactForm />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/sliders"
+          element={
+            <ProtectedRoute>
+              <AdminSliders />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/sliders/new"
+          element={
+            <ProtectedRoute>
+              <AdminSliderForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/sliders/:id/edit"
+          element={
+            <ProtectedRoute>
+              <AdminSliderForm />
             </ProtectedRoute>
           }
         />

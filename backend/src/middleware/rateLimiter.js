@@ -136,4 +136,14 @@ const inquiryLimiter = makeLimiter({
   prefix: 'rl:inquiry:',
 });
 
-module.exports = { apiLimiter, authLimiter, inquiryLimiter };
+// Tighter than authLimiter: the recovery code is the only thing standing
+// between an attacker and account takeover, so brute-forcing it needs a
+// much smaller budget than ordinary login attempts.
+const forgotPasswordLimiter = makeLimiter({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  message: 'Too many password reset attempts. Please try again in an hour.',
+  prefix: 'rl:forgotpw:',
+});
+
+module.exports = { apiLimiter, authLimiter, inquiryLimiter, forgotPasswordLimiter };

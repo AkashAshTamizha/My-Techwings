@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { FiBox, FiTool, FiLogOut, FiMonitor, FiInfo, FiPhone, FiSettings, FiMenu, FiX } from 'react-icons/fi';
+import { FiBox, FiTool, FiLogOut, FiMonitor, FiInfo, FiPhone, FiSettings, FiMenu, FiX, FiImage } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 
 const links = [
   { to: '/admin/products', label: 'Products', icon: <FiBox /> },
+  { to: '/admin/sliders', label: 'Home Slider', icon: <FiImage /> },
   { to: '/admin/services', label: 'Services', icon: <FiTool /> },
   { to: '/admin/about', label: 'About Page', icon: <FiInfo /> },
   { to: '/admin/contact', label: 'Contact Info', icon: <FiPhone /> },

@@ -5,16 +5,26 @@ import { Loader } from '../../components/common/Loader';
 import ImageUploader, { genId } from '../../components/admin/ImageUploader';
 import AttributeManager from '../../components/admin/AttributeManager';
 import VariantManager, { makeEmptyVariant } from '../../components/admin/VariantManager';
-import { createProduct, updateProduct, getProductByIdAdmin } from '../../services/api';
+import { createProduct, updateProduct, getProductByIdAdmin, getCategorySpecs } from '../../services/api';
 
-const CATEGORIES = ['Ultrabook', 'Gaming', 'Business', 'Refurbished', 'CCTV', 'Printer'];
+// Fallback used only until the /products/category-specs config has loaded
+// (or if that call fails), so the form is never blocked from rendering.
+const FALLBACK_CATEGORIES = ['Laptop', 'Ultrabook', 'Gaming', 'Business', 'Refurbished', 'Printer', 'Camera', 'CCTV'];
+const FALLBACK_SPEC_FIELDS = {
+  Laptop: [
+    { key: 'processor', label: 'Processor', type: 'text' },
+    { key: 'ram', label: 'RAM', type: 'text' },
+    { key: 'storage', label: 'Storage', type: 'text' },
+    { key: 'display', label: 'Display', type: 'text' },
+  ],
+};
 
 const emptyForm = {
   name: '',
   slug: '',
   sku: '',
   brand: '',
-  category: 'Ultrabook',
+  category: 'Laptop',
   tag: '',
   price: '',
   compareAtPrice: '',
@@ -24,7 +34,9 @@ const emptyForm = {
   images: [],
   attributes: [],
   variants: [],
-  specs: { processor: '', ram: '', storage: '', display: '' },
+  // Generic, category-driven spec key/values (see /products/category-specs).
+  // Which keys are meaningful depends entirely on the selected category.
+  specs: {},
 };
 
 const slugify = (s) =>
@@ -96,6 +108,11 @@ const cleanVariantAttributes = (attributes = []) =>
     .filter((a) => a.name.trim() && a.value.trim())
     .map(({ name, value }) => ({ name: name.trim(), value: value.trim() }));
 
+// Drops empty spec values before saving, so switching categories back and
+// forth (or leaving optional fields blank) never persists blank strings.
+const cleanSpecs = (specs = {}) =>
+  Object.fromEntries(Object.entries(specs).filter(([, value]) => String(value ?? '').trim() !== ''));
+
 const cleanVariants = (variants = []) =>
   variants.map(({ attributes, sku, price, compareAtPrice, stock, isActive, images }) => ({
     attributes: cleanVariantAttributes(attributes),
@@ -117,6 +134,25 @@ export default function AdminProductForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  // Category -> spec-field config, fetched once from the backend so adding a
+  // brand-new category (or changing an existing one's fields) never needs a
+  // frontend code change — see backend/src/config/categorySpecs.js.
+  const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
+  const [categorySpecFields, setCategorySpecFields] = useState(FALLBACK_SPEC_FIELDS);
+  const [categoryConfig, setCategoryConfig] = useState([]);
+
+  useEffect(() => {
+    getCategorySpecs()
+      .then((data) => {
+        if (data.categories?.length) setCategories(data.categories);
+        if (data.categorySpecs) setCategorySpecFields(data.categorySpecs);
+        if (data.categoryConfig) setCategoryConfig(data.categoryConfig);
+      })
+      .catch(() => {
+        /* keep fallback config — the form still works, just less dynamic */
+      });
+  }, []);
+
   useEffect(() => {
     if (!isEdit) return;
     getProductByIdAdmin(id)
@@ -129,15 +165,42 @@ export default function AdminProductForm() {
           images: withImageKeys(product.images),
           attributes: withAttributeKeys(product.attributes),
           variants: withVariantKeys(product.variants),
-          specs: { ...emptyForm.specs, ...product.specs },
+          specs: { ...product.specs },
         });
       })
       .catch(() => setError('Failed to load product'))
       .finally(() => setLoading(false));
   }, [id, isEdit]);
 
+  // The fields relevant to whichever category is currently selected. Falls
+  // back to an empty list for a category the config hasn't loaded yet.
+  const activeSpecFields = categorySpecFields[form.category] || [];
+  // "Screen size" is a Laptop-only concept from the original schema; only
+  // show it for categories whose productType is Laptop (Ultrabook, Gaming,
+  // Business, Refurbished, Laptop itself). Defaults to showing it if the
+  // config hasn't loaded yet, matching the form's original behaviour.
+  const isLaptopCategory =
+    categoryConfig.length === 0 ||
+    categoryConfig.find((c) => c.category === form.category)?.productType === 'Laptop';
+
   const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
   const updateSpec = (field) => (e) => setForm((f) => ({ ...f, specs: { ...f.specs, [field]: e.target.value } }));
+
+  // Switching category swaps out which spec fields apply, so old values from
+  // a different category's fields (e.g. "Megapixels" left over from Camera
+  // after switching to Printer) are dropped rather than silently kept and
+  // sent to the API.
+  const handleCategoryChange = (e) => {
+    const nextCategory = e.target.value;
+    const nextFields = categorySpecFields[nextCategory] || [];
+    setForm((f) => {
+      const nextSpecs = {};
+      nextFields.forEach((field) => {
+        if (f.specs?.[field.key] !== undefined) nextSpecs[field.key] = f.specs[field.key];
+      });
+      return { ...f, category: nextCategory, specs: nextSpecs };
+    });
+  };
 
   const validate = () => {
     if (form.images.some((img) => img.uploading)) return 'Please wait for all product images to finish uploading.';
@@ -192,6 +255,7 @@ export default function AdminProductForm() {
       images: cleanImages(form.images),
       attributes: cleanAttributes(form.attributes),
       variants: cleanVariants(form.variants),
+      specs: cleanSpecs(form.specs),
     };
 
     try {
@@ -237,8 +301,8 @@ export default function AdminProductForm() {
               <input required value={form.brand} onChange={update('brand')} className="input" />
             </Field>
             <Field label="Category">
-              <select value={form.category} onChange={update('category')} className="input">
-                {CATEGORIES.map((c) => (
+              <select value={form.category} onChange={handleCategoryChange} className="input">
+                {categories.map((c) => (
                   <option key={c} value={c}>
                     {c}
                   </option>
@@ -253,32 +317,54 @@ export default function AdminProductForm() {
                 <option value="Price Drop">Price Drop</option>
               </select>
             </Field>
-            <Field label="Screen size">
-              <input value={form.screenSize} onChange={update('screenSize')} className="input" placeholder='13"-14"' />
-            </Field>
+            {isLaptopCategory && (
+              <Field label="Screen size">
+                <input value={form.screenSize} onChange={update('screenSize')} className="input" placeholder='13"-14"' />
+              </Field>
+            )}
           </div>
 
           <Field label="Description">
             <textarea value={form.description} onChange={update('description')} className="input h-24 resize-none" />
           </Field>
 
-          {/* ---------- Specs (fixed fields + free-form attributes) ---------- */}
+          {/* ---------- Specs (dynamic per category + free-form attributes) ---------- */}
           <fieldset className="border border-slate-200 rounded p-4">
-            <legend className="text-sm font-semibold px-1">Specs</legend>
-            <div className="grid sm:grid-cols-2 gap-4 mt-2">
-              <Field label="Processor">
-                <input value={form.specs.processor} onChange={updateSpec('processor')} className="input" />
-              </Field>
-              <Field label="RAM">
-                <input value={form.specs.ram} onChange={updateSpec('ram')} className="input" />
-              </Field>
-              <Field label="Storage">
-                <input value={form.specs.storage} onChange={updateSpec('storage')} className="input" />
-              </Field>
-              <Field label="Display">
-                <input value={form.specs.display} onChange={updateSpec('display')} className="input" />
-              </Field>
-            </div>
+            <legend className="text-sm font-semibold px-1">Product Specs</legend>
+            {activeSpecFields.length === 0 ? (
+              <p className="text-xs text-slate-500 mt-1">
+                No predefined spec fields for this category yet — use &quot;Additional attributes&quot; below.
+              </p>
+            ) : (
+              <div className="grid sm:grid-cols-2 gap-4 mt-2">
+                {activeSpecFields.map((field) =>
+                  field.type === 'select' ? (
+                    <Field key={field.key} label={field.label}>
+                      <select
+                        value={form.specs?.[field.key] || ''}
+                        onChange={updateSpec(field.key)}
+                        className="input"
+                      >
+                        <option value="">Select {field.label}</option>
+                        {(field.options || []).map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                  ) : (
+                    <Field key={field.key} label={field.label}>
+                      <input
+                        value={form.specs?.[field.key] || ''}
+                        onChange={updateSpec(field.key)}
+                        className="input"
+                      />
+                    </Field>
+                  )
+                )}
+              </div>
+            )}
 
             <div className="mt-4 pt-4 border-t border-slate-100">
               <span className="block text-sm font-medium text-slate-700 mb-1">Additional attributes</span>

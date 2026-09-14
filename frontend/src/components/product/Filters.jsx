@@ -2,12 +2,6 @@ import { useEffect, useState } from 'react';
 import { FiChevronUp, FiChevronDown, FiTag, FiCreditCard, FiMonitor, FiImage, FiCpu, FiX } from 'react-icons/fi';
 import { getProductFilters } from '../../services/api';
 
-// Processor buckets aren't a raw field in the DB (they group several
-// free-text spec strings, e.g. "Intel Core i7" and "Intel Core i9" both fall
-// under "Intel Core i7/i9"), so there's no single distinct value to derive
-// them from — they stay as a small curated list.
-const PROCESSORS = ['Intel Core i7/i9', 'AMD Ryzen 7/9', 'Apple M-Series'];
-
 // Splits the catalog's actual [min, max] price into three round-numbered
 // brackets, mirroring the old hard-coded "Under / mid / Over" shape but
 // driven entirely by real data.
@@ -29,18 +23,20 @@ export default function Filters({ filters, onChange, onReset, open = false, onCl
   const [meta, setMeta] = useState(null);
   const [metaLoading, setMetaLoading] = useState(true);
 
-  // Categories, brands, screen sizes and the price-range brackets are all
-  // derived from what's actually in the catalog, fetched once on mount.
+  // Categories, brands, screen sizes, processors and the price-range
+  // brackets are all derived from what's actually in the catalog, fetched
+  // once on mount — nothing here is hard-coded.
   useEffect(() => {
     getProductFilters()
       .then((data) => setMeta(data.filters))
-      .catch(() => setMeta({ categories: [], brands: [], screenSizes: [], priceRange: {} }))
+      .catch(() => setMeta({ categories: [], brands: [], screenSizes: [], processors: [], priceRange: {} }))
       .finally(() => setMetaLoading(false));
   }, []);
 
   const categories = meta?.categories || [];
   const brands = meta?.brands || [];
-  const screenSizes = meta?.screenSizes?.length ? meta.screenSizes : ['13"-14"', '15"-16"', '17"+'];
+  const screenSizes = meta?.screenSizes || [];
+  const processors = meta?.processors || [];
   const priceRanges = buildPriceRanges(meta?.priceRange?.min, meta?.priceRange?.max);
 
   const toggleBrand = (brand) => {
@@ -133,25 +129,37 @@ export default function Filters({ filters, onChange, onReset, open = false, onCl
         </FilterSection>
 
         <FilterSection title="Screen Size" icon={<FiImage />} defaultOpen>
-          {screenSizes.map((s) => (
-            <RadioRow
-              key={s}
-              label={s}
-              checked={filters.screenSize === s}
-              onChange={() => onChange({ ...filters, screenSize: filters.screenSize === s ? undefined : s })}
-            />
-          ))}
+          {metaLoading ? (
+            <FilterSkeleton />
+          ) : screenSizes.length === 0 ? (
+            <p className="text-xs text-slate-400">No screen sizes yet</p>
+          ) : (
+            screenSizes.map((s) => (
+              <RadioRow
+                key={s}
+                label={s}
+                checked={filters.screenSize === s}
+                onChange={() => onChange({ ...filters, screenSize: filters.screenSize === s ? undefined : s })}
+              />
+            ))
+          )}
         </FilterSection>
 
         <FilterSection title="Processor" icon={<FiCpu />} defaultOpen>
-          {PROCESSORS.map((p) => (
-            <RadioRow
-              key={p}
-              label={p}
-              checked={filters.processor === p}
-              onChange={() => onChange({ ...filters, processor: filters.processor === p ? undefined : p })}
-            />
-          ))}
+          {metaLoading ? (
+            <FilterSkeleton />
+          ) : processors.length === 0 ? (
+            <p className="text-xs text-slate-400">No processors yet</p>
+          ) : (
+            processors.map((p) => (
+              <RadioRow
+                key={p}
+                label={p}
+                checked={filters.processor === p}
+                onChange={() => onChange({ ...filters, processor: filters.processor === p ? undefined : p })}
+              />
+            ))
+          )}
         </FilterSection>
 
         <button

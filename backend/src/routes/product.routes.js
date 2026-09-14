@@ -4,6 +4,7 @@ const ctrl = require('../controllers/product.controller');
 const validate = require('../middleware/validate');
 const { protect, restrictTo } = require('../middleware/auth');
 const { doubleCsrfProtection } = require('../middleware/csrf');
+const { CATEGORIES } = require('../config/categorySpecs');
 
 const router = express.Router();
 
@@ -28,6 +29,9 @@ router.get('/categories/summary', ctrl.getCategorySummary);
 // Distinct categories/brands/price-range/screen-sizes actually present in the
 // catalog, so the storefront Filters sidebar never has to hard-code values.
 router.get('/filters', ctrl.getFilterOptions);
+
+// Category → dynamic spec-field config (drives the Add/Edit Product form).
+router.get('/category-specs', ctrl.getCategorySpecs);
 
 // Admin lookup by Mongo _id (the public GET below is slug-based only, and the
 // admin edit screen needs a reliable, direct-by-id fetch rather than paging
@@ -113,8 +117,9 @@ router.post(
     body('slug').isSlug(),
     body('sku').optional({ checkFalsy: true }).trim(),
     body('brand').notEmpty().trim(),
-    body('category').isIn(['Ultrabook', 'Gaming', 'Business', 'Refurbished', 'CCTV', 'Printer']),
+    body('category').isIn(CATEGORIES),
     body('price').isFloat({ min: 0 }),
+    body('specs').optional().isObject().withMessage('specs must be an object of key/value pairs'),
     ...imageValidation('images'),
     ...attributesValidation,
     ...variantValidation,
@@ -130,9 +135,8 @@ router.patch(
     param('id').isMongoId(),
     body('sku').optional({ checkFalsy: true }).trim(),
     body('price').optional().isFloat({ min: 0 }),
-    body('category')
-      .optional()
-      .isIn(['Ultrabook', 'Gaming', 'Business', 'Refurbished', 'CCTV', 'Printer']),
+    body('category').optional().isIn(CATEGORIES),
+    body('specs').optional().isObject().withMessage('specs must be an object of key/value pairs'),
     ...imageValidation('images'),
     ...attributesValidation,
     ...variantValidation,

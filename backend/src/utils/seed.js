@@ -4,6 +4,7 @@ const Product = require('../models/Product');
 const Service = require('../models/Service');
 const AboutSection = require('../models/AboutSection');
 const ContactInfo = require('../models/ContactInfo');
+const Slider = require('../models/Slider');
 const User = require('../models/User');
 const logger = require('./logger');
 
@@ -125,6 +126,69 @@ const products = [
       },
     ],
   },
+  // ---- New categories (Printer, Camera, CCTV) — demonstrate the dynamic,
+  // per-category spec fields from config/categorySpecs.js. Existing laptop
+  // entries above are completely untouched.
+  {
+    name: 'Canon PIXMA G3010 All-in-One',
+    slug: 'canon-pixma-g3010',
+    sku: 'CANON-PIXMA-G3010',
+    brand: 'Canon',
+    category: 'Printer',
+    price: 16999,
+    specs: {
+      printType: 'Inkjet',
+      printSpeed: '8.8 ppm (mono) / 5 ppm (color)',
+      resolution: '4800 x 1200 dpi',
+      connectivity: 'USB, WiFi',
+      duplex: 'No',
+    },
+    description: 'Refillable ink tank all-in-one printer for high-volume, low-cost printing at home or office.',
+    images: [],
+    rating: 4.2,
+    reviewCount: 34,
+    stock: 20,
+  },
+  {
+    name: 'Canon EOS R10 Mirrorless Camera',
+    slug: 'canon-eos-r10',
+    sku: 'CANON-EOS-R10',
+    brand: 'Canon',
+    category: 'Camera',
+    price: 89999,
+    specs: {
+      sensorType: 'CMOS APS-C',
+      megapixels: '24.2 MP',
+      lensMount: 'RF',
+      videoResolution: '4K UHD',
+      zoom: 'Kit lens 18-45mm',
+    },
+    description: 'A lightweight mirrorless camera built for fast-moving subjects and sharp 4K video.',
+    images: [],
+    rating: 4.7,
+    reviewCount: 19,
+    stock: 5,
+  },
+  {
+    name: 'Hikvision 4MP Dome CCTV Camera',
+    slug: 'hikvision-4mp-dome-cctv',
+    sku: 'HIKVISION-4MP-DOME',
+    brand: 'Hikvision',
+    category: 'CCTV',
+    price: 3499,
+    specs: {
+      cameraType: 'Dome',
+      resolution: '4MP',
+      nightVision: 'Yes',
+      storageType: 'MicroSD (up to 256GB)',
+      channels: '1',
+    },
+    description: 'Weatherproof indoor/outdoor dome camera with clear night vision for homes and small offices.',
+    images: [],
+    rating: 4.4,
+    reviewCount: 41,
+    stock: 30,
+  },
 ];
 
 const services = [
@@ -182,6 +246,65 @@ const aboutSections = [
   },
 ];
 
+// Seeds the homepage hero slider with the same three promos that used to be
+// hardcoded in frontend/src/components/home/heroSlides.js, so the admin's
+// Slider Management screen starts populated instead of empty.
+const sliders = [
+  {
+    heading: [
+      { text: 'Powerful Laptops.', highlighted: false },
+      { text: 'Limitless', highlighted: true },
+      { text: 'Possibilities.', highlighted: true },
+    ],
+    description:
+      "Are you looking for the best Laptop store in Chennai? If yes, then you're in the right place. We offer the best deals for Laptops in Chennai with exciting offers & benefits.",
+    ctaLabel: 'Shop Now',
+    ctaTo: '/products',
+    image: {
+      url: 'https://res.cloudinary.com/dwaebmmgq/image/upload/v1789003159/ChatGPT_Image_Sep_10_2026_06_46_37_AM_s08gic.png',
+      publicId: 'mytechwings/slider/seed-laptops-desk',
+    },
+    alt: 'Laptops on a desk',
+    order: 1,
+  },
+  {
+    eyebrow: 'NEW ARRIVALS',
+    heading: [
+      { text: 'Latest Tech.', highlighted: false },
+      { text: 'Built For', highlighted: true },
+      { text: 'What’s Next.', highlighted: true },
+    ],
+    description:
+      'From ultra-thin ultrabooks to high-performance gaming rigs, explore the newest laptops from the brands you trust.',
+    ctaLabel: 'Explore New Arrivals',
+    ctaTo: '/products?sort=newest',
+    image: {
+      url: 'https://res.cloudinary.com/dwaebmmgq/image/upload/v1789003827/ChatGPT_Image_Sep_10_2026_06_59_43_AM_cyswdx.png',
+      publicId: 'mytechwings/slider/seed-new-arrivals',
+    },
+    alt: 'Latest tech laptop lineup',
+    order: 2,
+  },
+  {
+    eyebrow: 'LIMITED TIME',
+    heading: [
+      { text: 'Big Savings.', highlighted: false },
+      { text: 'On Top', highlighted: true },
+      { text: 'Brands.', highlighted: true },
+    ],
+    description:
+      'Grab exciting deals on Apple, Dell, HP, Lenovo and more — premium performance at prices that make sense.',
+    ctaLabel: 'View All Deals',
+    ctaTo: '/products?onSale=true&sort=price_asc',
+    image: {
+      url: 'https://images.pexels.com/photos/6893890/pexels-photo-6893890.jpeg',
+      publicId: 'mytechwings/slider/seed-top-brand-deals',
+    },
+    alt: 'Top brand laptop deals',
+    order: 3,
+  },
+];
+
 const contactInfo = [
   { type: 'address', label: 'Store Address', value: 'Chennai, Tamil Nadu', icon: 'FiMapPin', order: 1 },
   { type: 'whatsapp', label: 'WhatsApp / Phone', value: '+91 94457 54129', icon: 'FiPhone', order: 2 },
@@ -207,6 +330,10 @@ async function run() {
   await ContactInfo.deleteMany({});
   await ContactInfo.insertMany(contactInfo);
   logger.info(`Seeded ${contactInfo.length} contact info entries`);
+
+  await Slider.deleteMany({});
+  await Slider.insertMany(sliders);
+  logger.info(`Seeded ${sliders.length} slider slides`);
 
   const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@mytechwings.com';
   const existing = await User.findOne({ email: adminEmail });
