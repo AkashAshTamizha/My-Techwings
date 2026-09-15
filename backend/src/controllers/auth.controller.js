@@ -8,13 +8,19 @@ const AppError = require('../utils/AppError');
 const signToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '1d' });
 
+const isProd = process.env.NODE_ENV === 'production';
+
 const sendTokenCookie = (user, statusCode, res, extra = {}) => {
   const token = signToken(user._id);
 
   res.cookie('token', token, {
     httpOnly: true, // not readable by JS -> mitigates XSS token theft
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict', // mitigates CSRF
+    secure: isProd, // required by browsers whenever sameSite is 'none'
+    // Frontend (Vercel) and backend (Render) are different domains in
+    // production, so this cookie is cross-site and 'strict' gets rejected
+    // by the browser (same root cause as the CSRF cookie). Use 'none' in
+    // prod; 'strict' is fine and tighter for local same-site dev.
+    sameSite: isProd ? 'none' : 'strict',
     maxAge: 24 * 60 * 60 * 1000,
   });
 
@@ -84,7 +90,12 @@ exports.login = asyncHandler(async (req, res) => {
 
 // POST /api/v1/auth/logout
 exports.logout = asyncHandler(async (req, res) => {
-  res.cookie('token', 'loggedout', { httpOnly: true, expires: new Date(Date.now() + 1000) });
+  res.cookie('token', 'loggedout', {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'strict',
+    expires: new Date(Date.now() + 1000),
+  });
   res.status(200).json({ success: true, message: 'Logged out' });
 });
 
