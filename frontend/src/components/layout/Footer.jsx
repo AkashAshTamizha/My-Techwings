@@ -7,13 +7,10 @@ import InfoModal from '../common/InfoModal';
 // functionality/APIs behind them yet. Clicking one opens InfoModal instead
 // of navigating anywhere or calling an API — purely a temporary UI.
 const SERVICE_INFO = {
-  track: {
-    title: 'Track Your Order',
-    message: "Order tracking will be available soon. We're working on this feature — thanks for your patience!",
-  },
+ 
   shipping: {
-    title: 'Shipping & Delivery',
-    message: "Our full shipping & delivery details page is on the way. We're working on this feature.",
+    title: 'Delivery',
+    message: "Our full delivery details page is on the way. We're working on this feature.",
   },
   returns: {
     title: 'Returns & Refunds',
@@ -23,6 +20,10 @@ const SERVICE_INFO = {
     title: 'Warranty',
     message: "Warranty details will be available here shortly. We're working on this feature.",
   },
+  refurbishedunit:{
+     title: 'Refurbished Unit',
+    message: "Refurbished Unit details will be available here shortly. We're working on this feature.",
+  }
 };
 
 const EMAIL_RE = /^\S+@\S+\.\S+$/;
@@ -68,13 +69,8 @@ export default function Footer() {
           <h4 className="text-white font-semibold mb-3">Customer Service</h4>
           <ul className="space-y-2 text-slate-400">
             <li>
-              <button type="button" onClick={() => setActiveInfo('track')} className="hover:text-white text-left">
-                Track Order
-              </button>
-            </li>
-            <li>
               <button type="button" onClick={() => setActiveInfo('shipping')} className="hover:text-white text-left">
-                Shipping &amp; Delivery
+                 Delivery
               </button>
             </li>
             <li>
@@ -88,14 +84,9 @@ export default function Footer() {
               </button>
             </li>
             <li>
-              <Link to="/faqs" className="hover:text-white">
-                FAQs
-              </Link>
-            </li>
-            <li>
-              <Link to="/help" className="hover:text-white">
-                Help Center
-              </Link>
+              <button type="button" onClick={() => setActiveInfo('refurbishedunit')} className="hover:text-white text-left">
+                Refurbished Unit
+              </button>
             </li>
           </ul>
         </div>

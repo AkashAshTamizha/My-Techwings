@@ -221,7 +221,7 @@ export default function ProductDetail() {
 
       {related.length > 0 && (
         <div className="mt-16">
-          <h2 className="text-lg font-bold text-slate-900 mb-6">Customers Also Viewed</h2>
+          <h2 className="text-lg font-bold text-slate-900 mb-6">Similar Product Also Viewed</h2>
           <div className="flex flex-wrap gap-4 sm:gap-6">
             {related.map((p) => (
               <div key={p._id || p.slug} className="w-full sm:w-[260px]">

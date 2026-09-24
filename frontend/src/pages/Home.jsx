@@ -15,7 +15,7 @@ import ProductGrid from '../components/product/ProductGrid';
 import HeroSlider from '../components/home/HeroSlider';
 import useCategoryAvailability from '../hooks/useCategoryAvailability';
 import { getProducts, getSliders } from '../services/api';
-import { SiApple, SiAcer, SiSamsung, SiHp, SiLenovo, SiDell, SiToshiba } from 'react-icons/si';
+import { SiApple, SiAcer, SiSamsung, SiHp, SiLenovo, SiDell, SiToshiba, SiAsus } from 'react-icons/si';
 
 const CATEGORY_META = [
   { key: 'Ultrabook', label: 'Ultrabooks', sub: 'Lightweight & Thin', img: 'https://res.cloudinary.com/dwaebmmgq/image/upload/v1789003829/ChatGPT_Image_Sep_10_2026_06_58_02_AM_s8jufc.png' },
@@ -82,7 +82,7 @@ export default function Home() {
           <div className="w-full px-4 sm:px-6 py-6 grid grid-cols-2 md:grid-cols-4 gap-6">
             <TrustBadge icon={<FiTag />} title="100%" sub="Authentic Products" />
             <TrustBadge icon={<FiTruck />} title="Free Shipping" sub="On orders over Rs.10,000" />
-            <TrustBadge icon={<FiRotateCcw />} title="Easy Returns" sub="30-Day Return" />
+            <TrustBadge icon={<FiRotateCcw />} title="Easy Returns" sub="3-Day Return" />
             <TrustBadge icon={<FiLock />} title="Secure Payment" sub="100% Safe & Secure" />
           </div>
         </div>
@@ -146,154 +146,86 @@ export default function Home() {
       </section>
 
         {/* Brands banner */}
-   <section className="w-full px-4 sm:px-6 pb-14">
-              <div className="bg-brand-navy rounded-2xl p-8 sm:p-10 lg:p-12 grid lg:grid-cols-2 items-center overflow-hidden">
-                <div >
-                  <p className="text-brand-blue text-xs font-semibold tracking-widest">LIMITED TIME OFFER</p>
-                  <h3 className="text-white text-3xl sm:text-4xl font-extrabold mt-2 leading-tight">
-                    Best Deals on
-                    <br />
-                    Top <span className="text-brand-blue">Brands</span>
-                  </h3>
-                  <p className="text-slate-400 mt-3 max-w-sm">Grab exciting offers on premium laptops from leading brands.</p>
-                  <Link
-                    to="/products?onSale=true&sort=price_asc"
-                    className="inline-block mt-5 bg-brand-blue text-white font-semibold px-5 py-2.5 rounded hover:bg-brand-blueDark transition"
-                  >
-                    View All Deals →
-                  </Link>
-                </div>
-      
-      <div className="w-full flex flex-col gap-y-0">
-      
-        {/* ================= TOP ROW ================= */}
-        <div
-          className="
-            w-full
-            grid
-            grid-cols-[39%_14%_16%_16%_16%]
-            items-center
-             h-21 sm:h-13
-          "
-        >
-          {/* Empty - 35% */}
-          <div />
-      
-          {/* Apple - 15% */}
-          <div
-            title="Apple"
-            className="w-full flex items-center justify-center"
-          >
-            <SiApple className="text-white text-4xl sm:text-8xl" />
-          </div>
-      
-          {/* Acer - 20% */}
-          <div
-            title="Acer"
-            className="w-full flex items-center justify-center"
-          >
-            <SiAcer className="text-[#83b81a] text-3xl sm:text-9xl" />
-          </div>
-      
-          {/* Samsung - 25% */}
-          <div
-            title="Samsung"
-            className="w-full flex items-button justify-button"
-          >
-            <div
-              className="
-    relative
-    flex items-center justify-center
-    w-[100px] h-[18px]
-    sm:w-[159px] sm:h-[52px]
-    rounded-[50%]
-    bg-[#1074C4]
-    -rotate-[6deg]
-    shadow-md
-  "
-            >
-              <SiSamsung
-                className="
-                  relative
-                  z-10
-                  block
-                  w-[78%]
-                  h-auto
-                  rotate-[6deg]
-                "
-                style={{ color: "#ffffff" }}
-              />
-            </div>
-          </div>
-       {/* Samsung - 5% */}
-          <div />
-        </div>
-      
-      
-        {/* ================= BOTTOM ROW ================= */}
-        <div
-          className="
-            w-full
-            grid
-            grid-cols-[35%_15%_15%_15%_20%]
-            items-center
-            h-25 sm:h-25
-          "
-        >
-           {/* Empty - 30% */}
-          <div />
-         {/* HP - 15% */}
-          <div
-            title="HP"
-            className="w-full flex items-center justify-center"
-          >
-            <SiHp className="text-[#0096d6] text-4xl sm:text-8xl" />
-          </div>
-      
-          {/* Lenovo - 25% */}
-          <div
-            title="Lenovo"
-            className="w-full flex items-center justify-center"
-          >
-            <SiLenovo className="text-[#e2231a] text-4xl sm:text-9xl" />
-          </div>
-      
-          {/* Dell - 15% */}
-          <div
-            title="Dell"
-            className="w-full flex items-center justify-center"
-          >
-            <SiDell className="text-[#0096d6] text-5xl sm:text-8xl" />
-          </div>
-      
-          {/* Empty - 15% */}
-          <div   title="Toshiba"
-            className="w-full flex items-center justify-center" >
+  
+<section className="w-full px-4 sm:px-6 pb-14">
+  <div className="bg-brand-navy rounded-2xl p-6 sm:p-10 lg:p-12 grid lg:grid-cols-2 gap-10 lg:gap-8 items-center overflow-hidden">
+    {/* ---------- LEFT: Copy ---------- */}
+    <div>
+      <p className="text-brand-blue text-xs font-semibold tracking-widest">LIMITED TIME OFFER</p>
+      <h3 className="text-white text-3xl sm:text-4xl font-extrabold mt-2 leading-tight">
+        Best Deals on
+        <br />
+        Top <span className="text-brand-blue">Brands</span>
+      </h3>
+      <p className="text-slate-400 mt-3 max-w-sm">
+        Grab exciting offers on premium laptops from leading brands.
+      </p>
+      <Link
+        to="/products?onSale=true&sort=price_asc"
+        className="inline-block mt-5 bg-brand-blue text-white font-semibold px-5 py-2.5 rounded hover:bg-brand-blueDark transition"
+      >
+        View All Deals →
+      </Link>
+    </div>
 
-                   <div
-              className="
-    relative
-    flex items-center justify-center
-    w-[100px] h-[18px]
-    sm:w-[150px] sm:h-[52px]
-    rounded-[5%]
-     bg-[#e2231a]
-   
-    shadow-md
-  "
-            >
-          <SiToshiba className="text-[#ffffff] text-5xl sm:text-8xl" />
-          </div>
-          </div>
+    {/* ---------- RIGHT: Brand grid ---------- */}
+    {/* Mobile: 4 cols. sm+: 5 cols with wider first column for the staggered offset */}
+    <div className="w-full grid grid-cols-4 sm:grid-cols-[1.4fr_1fr_1fr_1fr_1fr] items-center justify-items-center gap-y-8 sm:gap-y-10">
+      {/* ===== TOP ROW ===== */}
+      <SiAsus 
+      title="Asus"
+        className="col-start-0 sm:col-start-1 row-start-1 text-white text-5xl sm:text-6xl lg:text-7xl"
+      />
+      <SiApple
+        title="Apple"
+        className="col-start-1 sm:col-start-2 row-start-1 text-white text-4xl sm:text-5xl lg:text-6xl"
+      />
+
+      <SiAcer
+        title="Acer"
+        className="col-start-2 sm:col-start-3 row-start-1 text-[#83b81a] text-4xl sm:text-5xl lg:text-6xl"
+      />
+
+      <div
+        title="Samsung"
+        className="col-start-3 sm:col-start-4 row-start-1 flex items-center justify-center"
+      >
+        <div className="relative flex items-center justify-center w-[64px] h-[18px] sm:w-[100px] sm:h-[30px] lg:w-[120px] lg:h-[36px] rounded-[50%] bg-[#1074C4] -rotate-[6deg] shadow-md max-w-full">
+          <SiSamsung
+            className="relative z-10 block w-[78%] h-auto rotate-[6deg] text-white"
+          />
         </div>
-      
       </div>
-      
-      
-      
-      
-              </div>
-            </section>
+
+      {/* ===== BOTTOM ROW ===== */}
+      <SiHp
+        title="HP"
+        className="col-start-1 row-start-2 text-[#0096d6] text-4xl sm:text-5xl lg:text-6xl"
+      />
+
+      <SiLenovo
+        title="Lenovo"
+        className="col-start-2 row-start-2 text-[#e2231a] text-4xl sm:text-5xl lg:text-7xl"
+      />
+
+      <SiDell
+        title="Dell"
+        className="col-start-3 row-start-2 text-[#0096d6] text-4xl sm:text-5xl lg:text-6xl"
+      />
+
+      <div
+        title="Toshiba"
+        className="col-start-4 row-start-2 flex items-center justify-center"
+      >
+        <div className="flex items-center justify-center px-2.5 sm:px-3 py-1.5 h-6 rounded-lg bg-[#e2231a] shadow-md max-w-full">
+          <SiToshiba className="w-12 sm:w-16 lg:w-20 h-auto text-white" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
 
       {/* Popular laptops */}
       <section className="w-full px-4 sm:px-6 pb-14">
