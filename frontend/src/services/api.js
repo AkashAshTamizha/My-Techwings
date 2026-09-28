@@ -92,6 +92,29 @@ export const uploadProductFile = (file, onUploadProgress) => {
 export const deleteUploadedImage = (publicId, resourceType = 'image') =>
   api.delete('/uploads', { params: { publicId, resourceType } }).then((r) => r.data);
 
+// ---- Service page content (public: fixed hero / warranty / how-we-work copy) ----
+export const getServiceContent = () => api.get('/services/content').then((r) => r.data);
+// ---- Admin: Service page content ----
+export const getServiceContentAdmin = () => api.get('/services/content/admin').then((r) => r.data);
+export const updateServiceContent = (payload) => api.patch('/services/content', payload).then((r) => r.data);
+
+// ---- Admin: "How We Work" intro sub-resource (title/description/image
+// shown above the step cards) — create it the first time, fully replace
+// it, or reset it back to defaults, independently of the rest of the
+// Service page content. ----
+export const createHowWeWorkIntro = (payload) => api.post('/services/content/how-we-work', payload).then((r) => r.data);
+export const replaceHowWeWorkIntro = (payload) => api.put('/services/content/how-we-work', payload).then((r) => r.data);
+export const deleteHowWeWorkIntro = () => api.delete('/services/content/how-we-work').then((r) => r.data);
+
+// ---- Service cards (public: repeatable "how we work" step cards) ----
+export const getServiceCards = () => api.get('/services/cards').then((r) => r.data);
+// ---- Admin: Service cards ----
+export const getAllServiceCardsAdmin = () => api.get('/services/cards/admin/all').then((r) => r.data);
+export const getServiceCardById = (id) => api.get(`/services/cards/${id}`).then((r) => r.data);
+export const createServiceCard = (payload) => api.post('/services/cards', payload).then((r) => r.data);
+export const updateServiceCard = (id, payload) => api.patch(`/services/cards/${id}`, payload).then((r) => r.data);
+export const deleteServiceCard = (id) => api.delete(`/services/cards/${id}`).then((r) => r.data);
+
 // ---- Services (public) ----
 export const getServices = () => api.get('/services').then((r) => r.data);
 
@@ -121,6 +144,18 @@ export const getContactInfoById = (id) => api.get(`/contact/${id}`).then((r) => 
 export const createContactInfo = (payload) => api.post('/contact', payload).then((r) => r.data);
 export const updateContactInfo = (id, payload) => api.patch(`/contact/${id}`, payload).then((r) => r.data);
 export const deleteContactInfo = (id) => api.delete(`/contact/${id}`).then((r) => r.data);
+
+// ---- About page content (public: fixed hero / story / what-we-repair copy) ----
+export const getAboutContent = () => api.get('/about').then((r) => r.data);
+// ---- Admin: About page content ----
+export const getAboutContentAdmin = () => api.get('/about/admin').then((r) => r.data);
+export const updateAboutContent = (payload) => api.patch('/about', payload).then((r) => r.data);
+
+// ---- Contact page content (public: fixed hero / get-in-touch / phone / email / map copy) ----
+export const getContactContent = () => api.get('/contact').then((r) => r.data);
+// ---- Admin: Contact page content ----
+export const getContactContentAdmin = () => api.get('/contact/admin').then((r) => r.data);
+export const updateContactContent = (payload) => api.patch('/contact', payload).then((r) => r.data);
 
 // ---- Slider (public) ----
 export const getSliders = () => api.get('/sliders').then((r) => r.data);

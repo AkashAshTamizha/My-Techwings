@@ -1,69 +1,81 @@
+import { useEffect, useState } from 'react';
 import { FiPhone, FiMail } from 'react-icons/fi';
+import { Loader } from '../components/common/Loader';
+import { getContactContent } from '../services/api';
 
-const PHONE_DISPLAY = '+91 94457 54129';
-const PHONE_TEL = '+919445754129';
-const EMAIL = 'support@jirehbyte.com';
-const MAP_QUERY = 'Chennai, Tamil Nadu, India';
+// Fixed layout, matching the reference design 1:1 — every piece of text
+// and the map image come from the admin-editable Contact content (see
+// /admin/contact).
+const fallback = {
+  heroHeading: 'Any question or remarks?',
+  heroSubheading: 'Just write us a message!',
+  getInTouchTitle: 'Get in Touch',
+  getInTouchDescription: '',
+  phoneLabel: 'PHONE',
+  phoneValue: '',
+  emailLabel: 'EMAIL',
+  emailValue: '',
+  mapImage: {},
+};
 
 export default function Contact() {
+  const [contact, setContact] = useState(fallback);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getContactContent()
+      .then((data) => setContact({ ...fallback, ...data.contact }))
+      .catch(() => setContact(fallback))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16">
+        <Loader />
+      </div>
+    );
+  }
+
   return (
     <div>
       {/* Hero */}
-      <section className="bg-[#ECF2FE] px-4 sm:px-6 py-14 sm:py-16 text-center">
-        <div className="max-w-3xl mx-auto">
-          <h1 className="text-[22px] sm:text-[28px] md:text-[32px] font-bold leading-tight text-[#0B1220]">
-            Any question or remarks?
-            <br />
-            Just write us a message!
-          </h1>
-        </div>
+      <section className="bg-brand-bgHero py-16 px-4 sm:px-6 text-center">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900">{contact.heroHeading}</h1>
+        <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mt-1">{contact.heroSubheading}</p>
       </section>
 
       {/* Get in Touch */}
-      <section className="bg-[#F9FAFC] px-4 sm:px-6 py-14 sm:py-16">
-        <div className="max-w-5xl mx-auto grid sm:grid-cols-2 gap-8 sm:gap-10 items-center">
+      <section className="bg-brand-bgSoft py-16 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-start">
           <div>
-            <h2 className="text-[26px] sm:text-[30px] font-bold text-[#0B1220]">Get in Touch</h2>
-            <p className="mt-4 text-[15px] leading-relaxed text-slate-600 max-w-md">
-              Call, WhatsApp, Email, or walk in — We are Available 12 hours a day, 7 days a week. Drop us a message
-              and we will get back to you as soon as possible.
-            </p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4">{contact.getInTouchTitle}</h2>
+            <p className="text-slate-600 leading-relaxed mb-8">{contact.getInTouchDescription}</p>
 
-            <div className="mt-7 flex flex-wrap gap-x-10 gap-y-5">
-              <div className="flex items-center gap-3">
-                <span className="text-slate-700 text-xl shrink-0">
-                  <FiPhone />
-                </span>
-                <div>
-                  <p className="text-xs font-semibold tracking-wide text-slate-500">PHONE</p>
-                  <a href={`tel:${PHONE_TEL}`} className="text-[#0064FC] hover:underline">
-                    {PHONE_DISPLAY}
-                  </a>
+            <div className="flex flex-wrap gap-10">
+              <div>
+                <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold tracking-wide mb-1">
+                  <FiPhone /> {contact.phoneLabel}
                 </div>
+                <a href={`tel:${contact.phoneValue}`} className="text-brand-blue font-medium">
+                  {contact.phoneValue}
+                </a>
               </div>
-
-              <div className="flex items-center gap-3">
-                <span className="text-slate-700 text-xl shrink-0">
-                  <FiMail />
-                </span>
-                <div>
-                  <p className="text-xs font-semibold tracking-wide text-slate-500">EMAIL</p>
-                  <a href={`mailto:${EMAIL}`} className="text-[#0064FC] hover:underline">
-                    {EMAIL}
-                  </a>
+              <div>
+                <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold tracking-wide mb-1">
+                  <FiMail /> {contact.emailLabel}
                 </div>
+                <a href={`mailto:${contact.emailValue}`} className="text-brand-blue font-medium">
+                  {contact.emailValue}
+                </a>
               </div>
             </div>
           </div>
 
-          <div className="aspect-[4/3] w-full overflow-hidden rounded-sm shadow-sm">
-            <iframe
-              title="Jireh Byte location map"
-              src={`https://www.google.com/maps?q=${encodeURIComponent(MAP_QUERY)}&output=embed`}
-              className="h-full w-full border-0"
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
+          <div className="rounded-lg overflow-hidden bg-slate-200 aspect-[4/3]">
+            {contact.mapImage?.url && (
+              <img src={contact.mapImage.url} alt="Our location" className="w-full h-full object-cover" />
+            )}
           </div>
         </div>
       </section>

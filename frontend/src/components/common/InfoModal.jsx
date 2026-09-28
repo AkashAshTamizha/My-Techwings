@@ -37,7 +37,19 @@ export default function InfoModal({ title, message, onClose }) {
         <h2 id="info-modal-title" className="text-lg font-bold text-slate-900 pr-6">
           {title}
         </h2>
-        <p className="text-sm text-slate-500 mt-2">{message}</p>
+        {Array.isArray(message) ? (
+  <ul className="mt-3 space-y-3 text-sm text-slate-500 list-disc pl-5">
+    {message.map((item, index) => (
+      <li key={index} className="leading-6">
+        {item}
+      </li>
+    ))}
+  </ul>
+) : (
+  <p className="text-sm text-slate-500 mt-3 leading-6">
+    {message}
+  </p>
+)}
 
         <button
           type="button"

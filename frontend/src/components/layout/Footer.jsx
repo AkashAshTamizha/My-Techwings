@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiFacebook, FiInstagram, FiYoutube, FiMonitor, FiMapPin, FiPhone, FiMail, FiCheck } from 'react-icons/fi';
 import InfoModal from '../common/InfoModal';
+import { getContactContent } from '../../services/api';
+import { Loader } from '../common/Loader';
 
 // Placeholder copy for Customer Service links that don't have real
 // functionality/APIs behind them yet. Clicking one opens InfoModal instead
@@ -20,16 +22,53 @@ const SERVICE_INFO = {
     title: 'Warranty',
     message: "Warranty details will be available here shortly. We're working on this feature.",
   },
-  refurbishedunit:{
-     title: 'Refurbished Unit',
-    message: "Refurbished Unit details will be available here shortly. We're working on this feature.",
-  }
+refurbishedunit: {
+  title: 'Refurbished Unit',
+  message: [
+    'Inside and outlook of the Refurbished Units: Slight scratches may be visible on the body of the unit.',
+    'Testing Warranty: 1 month and Service Guarantee: 12 months Limited India Repair Service Warranty.',
+    'All refurbished units are functional and are Quality Checked and Tested.',
+    'Unit cannot be processed for DOA, replaced with a New Unit, provided with Cosmetic Changes, or supplied with a new packing box. Unit will be sold as is.',
+    'Special Promo Offers and Warranty Extension Packages are not applicable for Refurbished Units.',
+    'Warranty Extension Service is not applicable on these products.',
+  ],
+},
+};
+
+const fallback = {
+  heroHeading: 'Any question or remarks?',
+  heroSubheading: 'Just write us a message!',
+  getInTouchTitle: 'Get in Touch',
+  getInTouchDescription: '',
+  phoneLabel: 'PHONE',
+  phoneValue: '',
+  emailLabel: 'EMAIL',
+  emailValue: '',
+  mapImage: {},
 };
 
 const EMAIL_RE = /^\S+@\S+\.\S+$/;
 
 export default function Footer() {
   const [activeInfo, setActiveInfo] = useState(null); // one of SERVICE_INFO keys | null
+  const [contact, setContact] = useState(fallback);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getContactContent()
+      .then((data) => setContact({ ...fallback, ...data.contact }))
+      .catch(() => setContact(fallback))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16">
+        <Loader />
+      </div>
+    );
+  }
+
 
   return (
     <footer className="w-full bg-brand-navy text-slate-300">
@@ -94,7 +133,6 @@ export default function Footer() {
         <FooterColumn
           title="Shop By Category"
           items={[
-            ['New Laptops', '/products?category=New'],
             ['Refurbished Laptops', '/products?category=Refurbished'],
             ['CCTV devices', '/products?category=CCTV'],
             ['Printers', '/products?category=Printer'],
@@ -104,7 +142,7 @@ export default function Footer() {
           <h4 className="text-white font-semibold mb-3">Contact Us</h4>
           <ul className="space-y-2 text-slate-400">
             <li className="flex items-center gap-2"><FiMapPin /> Chennai, Tamil Nadu</li>
-            <li className="flex items-center gap-2"><FiPhone /> +91 94457 54129</li>
+            <li className="flex items-center gap-2"><FiPhone />{contact.phoneValue}</li>
             <li className="flex items-center gap-2"><FiMail /> support@jirehbyte.com</li>
           </ul>
         </div>

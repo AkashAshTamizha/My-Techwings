@@ -17,6 +17,7 @@ import AdminProducts from './pages/admin/AdminProducts';
 import AdminProductForm from './pages/admin/AdminProductForm';
 import AdminServices from './pages/admin/AdminServices';
 import AdminServiceForm from './pages/admin/AdminServiceForm';
+import AdminServiceCards from './pages/admin/AdminServiceCards';
 import AdminAbout from './pages/admin/AdminAbout';
 import AdminAboutForm from './pages/admin/AdminAboutForm';
 import AdminContact from './pages/admin/AdminContact';
@@ -124,7 +125,15 @@ export default function App() {
           }
         />
         <Route
-          path="/admin/services/new"
+          path="/admin/service-cards"
+          element={
+            <ProtectedRoute>
+              <AdminServiceCards />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/service-cards/new"
           element={
             <ProtectedRoute>
               <AdminServiceForm />
@@ -132,7 +141,7 @@ export default function App() {
           }
         />
         <Route
-          path="/admin/services/:id/edit"
+          path="/admin/service-cards/:id/edit"
           element={
             <ProtectedRoute>
               <AdminServiceForm />

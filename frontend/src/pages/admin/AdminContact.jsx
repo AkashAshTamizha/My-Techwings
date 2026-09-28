@@ -1,108 +1,140 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import AdminLayout from '../../components/admin/AdminLayout';
-import ConfirmDialog from '../../components/admin/ConfirmDialog';
 import { Loader } from '../../components/common/Loader';
-import { getAllContactAdmin, deleteContactInfo } from '../../services/api';
+import SingleImageField from './SingleImageField';
+import { getContactContentAdmin, updateContactContent } from '../../services/api';
 
+const emptyForm = {
+  heroHeading: '',
+  heroSubheading: '',
+  getInTouchTitle: '',
+  getInTouchDescription: '',
+  phoneLabel: '',
+  phoneValue: '',
+  emailLabel: '',
+  emailValue: '',
+  mapImage: {},
+};
+
+// The Contact page's layout (hero / "Get in Touch" / phone / email / map)
+// is fixed on the frontend, so this is a single form for the one content
+// document behind that layout — no list, no add/delete.
 export default function AdminContact() {
-  const [items, setItems] = useState([]);
+  const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(true);
-  const [pendingDelete, setPendingDelete] = useState(null);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [saved, setSaved] = useState(false);
 
-  const load = () => {
-    setLoading(true);
-    getAllContactAdmin()
-      .then((data) => setItems(data.items))
+  useEffect(() => {
+    getContactContentAdmin()
+      .then((data) => setForm({ ...emptyForm, ...data.contact }))
       .finally(() => setLoading(false));
+  }, []);
+
+  const update = (field) => (e) => {
+    setForm((f) => ({ ...f, [field]: e.target.value }));
+    setSaved(false);
   };
 
-  useEffect(load, []);
+  const updateImage = (field) => (image) => {
+    setForm((f) => ({ ...f, [field]: image }));
+    setSaved(false);
+  };
 
-  const confirmDelete = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setError('');
+    setSaved(false);
+
     try {
-      await deleteContactInfo(pendingDelete._id);
-      setItems((list) => list.filter((i) => i._id !== pendingDelete._id));
+      const data = await updateContactContent(form);
+      setForm({ ...emptyForm, ...data.contact });
+      setSaved(true);
     } catch (err) {
-      setError('Failed to delete contact info');
+      setError(err.response?.data?.message || 'Failed to save Contact page content');
     } finally {
-      setPendingDelete(null);
+      setSaving(false);
     }
   };
 
+  if (loading) {
+    return (
+      <AdminLayout>
+        <Loader />
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-slate-900">Contact Info</h1>
-        <Link
-          to="/admin/contact/new"
-          className="flex items-center gap-2 bg-brand-blue text-white text-sm font-semibold px-4 py-2 rounded hover:bg-brand-blueDark"
+      <h1 className="text-xl font-bold text-slate-900 mb-6">Contact Page</h1>
+
+      <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
+        {/* Hero */}
+        <section className="bg-white rounded-lg border border-slate-200 p-6 space-y-4">
+          <h2 className="font-semibold text-slate-900">Hero</h2>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Field label="Heading">
+              <input value={form.heroHeading} onChange={update('heroHeading')} className="input" />
+            </Field>
+            <Field label="Subheading">
+              <input value={form.heroSubheading} onChange={update('heroSubheading')} className="input" />
+            </Field>
+          </div>
+        </section>
+
+        {/* Get in Touch */}
+        <section className="bg-white rounded-lg border border-slate-200 p-6 space-y-4">
+          <h2 className="font-semibold text-slate-900">Get in Touch</h2>
+          <Field label="Title">
+            <input value={form.getInTouchTitle} onChange={update('getInTouchTitle')} className="input" />
+          </Field>
+          <Field label="Description">
+            <textarea value={form.getInTouchDescription} onChange={update('getInTouchDescription')} className="input h-24 resize-none" />
+          </Field>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Field label="Phone label">
+              <input value={form.phoneLabel} onChange={update('phoneLabel')} className="input" />
+            </Field>
+            <Field label="Phone number">
+              <input value={form.phoneValue} onChange={update('phoneValue')} className="input" />
+            </Field>
+            <Field label="Email label">
+              <input value={form.emailLabel} onChange={update('emailLabel')} className="input" />
+            </Field>
+            <Field label="Email address">
+              <input value={form.emailValue} onChange={update('emailValue')} className="input" type="email" />
+            </Field>
+          </div>
+
+          <SingleImageField label="Location / map image" value={form.mapImage} onChange={updateImage('mapImage')} folder="content" />
+        </section>
+
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        {saved && <p className="text-sm text-green-600">Saved.</p>}
+
+        <button
+          type="submit"
+          disabled={saving}
+          className="bg-brand-blue text-white font-semibold px-6 py-2.5 rounded hover:bg-brand-blueDark disabled:opacity-60"
         >
-          <FiPlus /> Add Contact Info
-        </Link>
-      </div>
+          {saving ? 'Saving…' : 'Save Changes'}
+        </button>
+      </form>
 
-      {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
-
-      {loading ? (
-        <Loader />
-      ) : (
-        <div className="bg-white rounded-lg border border-slate-200 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-left text-slate-500">
-              <tr>
-                <th className="px-4 py-3">Type</th>
-                <th className="px-4 py-3">Label</th>
-                <th className="px-4 py-3">Value</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {items.map((i) => (
-                <tr key={i._id}>
-                  <td className="px-4 py-3 capitalize text-slate-500">{i.type}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900">{i.label}</td>
-                  <td className="px-4 py-3 text-slate-500">{i.value}</td>
-                  <td className="px-4 py-3">
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded ${i.isActive ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-                      {i.isActive ? 'Active' : 'Hidden'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex justify-end gap-3">
-                      <Link to={`/admin/contact/${i._id}/edit`} className="text-brand-blue hover:text-brand-blueDark" aria-label="Edit">
-                        <FiEdit2 />
-                      </Link>
-                      <button onClick={() => setPendingDelete(i)} className="text-red-600 hover:text-red-700" aria-label="Delete">
-                        <FiTrash2 />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {items.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-4 py-10 text-center text-slate-400">
-                    No contact info yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {pendingDelete && (
-        <ConfirmDialog
-          title="Delete contact info?"
-          message={`"${pendingDelete.label}" will be permanently removed.`}
-          onConfirm={confirmDelete}
-          onCancel={() => setPendingDelete(null)}
-        />
-      )}
+      <style>{`.input { width: 100%; border: 1px solid #E2E8F0; border-radius: 6px; padding: 8px 12px; font-size: 14px; outline: none; } .input:focus { border-color: #2563EB; }`}</style>
     </AdminLayout>
+  );
+}
+
+function Field({ label, children }) {
+  return (
+    <label className="block text-sm">
+      <span className="block text-slate-600 mb-1">{label}</span>
+      {children}
+    </label>
   );
 }

@@ -1,79 +1,149 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import storyImg from './assets/about/story-about-us.jpg';
-import repairImg from './assets/about/what-we-repair.jpg';
+import { Loader } from '../components/common/Loader';
+import { getAboutContent } from '../services/api';
 
-const repairList = [
-  'Internal Board Repair',
-  'Screen Replacement',
-  'Keyboard Replacement',
-  'SSD & RAM Upgrade',
-  'Blue Screen Fix Adapter & DC Jack',
-  'Hinge & Panel Rework',
-  'Physical Damage Rework',
-  'Data Recovery',
-  'Wi-Fi & Network Fix',
-  'USB & Port Repair',
-  'Camera Issue Fix',
-  'Speaker & Audio Fix',
-  'Password Unlocking',
-  'Linux / Windows Install',
-  'Charging Circuit Repair and etc..',
-];
+// Fixed layout, matching the reference design 1:1 — every piece of text
+// and both images come from the admin-editable About content (see
+// /admin/about). Shown until that request resolves so the page never
+// flashes with schema defaults it doesn't actually have yet.
+const fallback = {
+  heroHeading: 'Bringing over **5+** Years of Trusted experience to Chennai for the past **3+** Years.',
+  storyTitle: 'Story about us',
+  storyDescription: '',
+  storyImage: {},
+  repairTitle: 'What We Repair',
+  repairDescription: '',
+  repairServicesList: '',
+  repairImage: {},
+  enquiryButtonText: 'Service Enquiry Form',
+  enquiryButtonLink: '/contact',
+};
+
+// Renders "Bringing over **5+** Years..." with the **wrapped** portions in
+// the brand blue, mirroring the reference design's highlighted "5+" / "3+".
+// function renderHighlighted(text) {
+//   // Define keywords you want highlighted
+//   const keywords = ["experience", "Chennai"];
+
+//   // Regex: matches either keywords OR numbers with a plus sign (e.g. 5+, 10+, 4+)
+//   const regex = new RegExp(`(${keywords.join("|")}|\\d+\\+)`, "gi");
+
+//   // Split text into parts
+//   const parts = String(text || "").split(regex);
+
+//   return parts.map((part, i) => {
+//     // Check if part is a keyword or a number+ pattern
+//     const isKeyword = keywords.some(word => word.toLowerCase() === part.toLowerCase());
+//     const isNumberPlus = /^\d+\+$/.test(part);
+
+//     if (isKeyword || isNumberPlus) {
+//       return (
+//         <span key={i} className="text-brand-blue">
+//           {part}
+//         </span>
+//       );
+//     }
+//     return <span key={i}>{part}</span>;
+//   });
+// }
+
+function renderHighlighted(text) {
+  const regex = /(\d+\+)/g;
+
+  const parts = String(text || "").split(regex);
+
+  return parts.map((part, i) => {
+    const isNumberPlus = /^\d+\+$/.test(part);
+
+    return (
+      <span
+        key={i}
+        className={isNumberPlus ? "text-brand-blue" : ""}
+      >
+        {part}
+      </span>
+    );
+  });
+}
+
+
 
 export default function About() {
+  const [about, setAbout] = useState(fallback);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getAboutContent()
+      .then((data) => setAbout({ ...fallback, ...data.about }))
+      .catch(() => setAbout(fallback))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16">
+        <Loader />
+      </div>
+    );
+  }
+
+  const repairItems = about.repairServicesList
+    ? about.repairServicesList.split('|').map((s) => s.trim()).filter(Boolean)
+    : [];
+
   return (
     <div>
       {/* Hero */}
-      <section className="bg-[#ECF2FE] px-4 sm:px-6 py-14 sm:py-16 text-center">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-[22px] sm:text-[28px] md:text-[32px] font-bold leading-tight text-[#0B1220]">
-            Bringing over <span className="text-[#0064FC]">5+</span> Years of Trusted experience to
-            <br className="hidden sm:block" /> Chennai for the past <span className="text-[#0064FC]">3+</span> Years.
-          </h1>
-        </div>
+      <section className="bg-brand-bgHero py-16 px-4 sm:px-6">
+        <h1 className="max-w-4xl mx-auto text-center text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 leading-snug">
+          {renderHighlighted(about.heroHeading)}
+        </h1>
       </section>
 
       {/* Story about us */}
-      <section className="bg-[#F9FAFC] px-4 sm:px-6 py-14 sm:py-16">
-        <div className="max-w-5xl mx-auto grid sm:grid-cols-2 gap-8 sm:gap-10 items-center">
+      <section className="bg-brand-bgSoft py-16 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
           <div>
-            <h2 className="text-[26px] sm:text-[30px] font-bold text-[#0B1220]">Story about us</h2>
-            <p className="mt-4 text-[15px] leading-relaxed text-slate-600 max-w-md">
-              Jireh Byte Tech Solutions started as a small laptop repair counter in Chennai and has grown into a
-              trusted, one-stop shop for laptops, refurbished machines, CCTV systems, and printers. For over 5 years
-              we&apos;ve combined hands-on repair expertise with honest advice, and for the last 3+ years we&apos;ve
-              brought that same care to every customer who walks through our doors here in Chennai. We partner
-              directly with leading brands to bring genuine products, fair pricing, and dependable after-sales
-              support — because a laptop that just works is what keeps our customers coming back.
-            </p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4">{about.storyTitle}</h2>
+            <p className="text-slate-600 whitespace-pre-line leading-relaxed">{about.storyDescription}</p>
           </div>
-          <div className="aspect-[4/3] w-full overflow-hidden rounded-sm">
-            <img src={storyImg} alt="Our team at Jireh Byte" className="h-full w-full object-cover" />
+          <div className="rounded-lg max-w-[400px] overflow-hidden bg-slate-200 aspect-[4/3]">
+            {about.storyImage?.url && (
+            <img
+  src={about.storyImage.url}
+  alt={about.storyTitle}
+  className="w-full max-w-[400px] aspect-square object-cover rounded-lg"
+/>
+            )}
           </div>
         </div>
       </section>
 
       {/* What We Repair */}
-      <section className="bg-[#F9FAFC] px-4 sm:px-6 pb-14 sm:pb-16">
-        <div className="max-w-5xl mx-auto grid sm:grid-cols-2 gap-8 sm:gap-10 items-center">
+      <section className="bg-brand-bgSoft pb-16 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
           <div>
-            <h2 className="text-[26px] sm:text-[30px] font-bold text-[#0B1220]">What We Repair</h2>
-            <p className="mt-4 text-[15px] leading-relaxed text-slate-600 max-w-md">
-              Complete laptop service, under one roof. From a cracked screen to a dead motherboard — every laptop
-              repair, upgrade and maintenance service you need.
-            </p>
-            <p className="mt-4 text-[15px] leading-relaxed text-slate-600 max-w-md">
-              {repairList.join(' | ')}
-            </p>
-            <Link
-              to="/contact"
-              className="inline-block mt-6 rounded bg-[#0064FC] px-7 py-3 text-sm font-semibold text-white hover:bg-[#0052D4] transition-colors"
-            >
-              Service Enquiry Form
-            </Link>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4">{about.repairTitle}</h2>
+            <p className="text-slate-600 leading-relaxed">{about.repairDescription}</p>
+
+            {repairItems.length > 0 && (
+              <p className="text-slate-600 leading-relaxed mt-4">{repairItems.join(' | ')}</p>
+            )}
+
+            {about.enquiryButtonText && (
+              <Link
+                to={about.enquiryButtonLink || '/contact'}
+                className="inline-block mt-6 bg-brand-blue text-white font-semibold px-6 py-3 rounded hover:bg-brand-blueDark"
+              >
+                {about.enquiryButtonText}
+              </Link>
+            )}
           </div>
-          <div className="aspect-[4/3] w-full overflow-hidden rounded-sm">
-            <img src={repairImg} alt="Laptop motherboard repair" className="h-full w-full object-cover" />
+          <div className="rounded-lg overflow-hidden max-w-[400px] bg-slate-200 aspect-[4/3]">
+            {about.repairImage?.url && (
+              <img src={about.repairImage.url} alt={about.repairTitle}  className="w-full max-w-[400px] aspect-square object-cover rounded-lg" />
+            )}
           </div>
         </div>
       </section>

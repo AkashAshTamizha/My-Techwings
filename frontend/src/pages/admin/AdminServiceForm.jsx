@@ -2,16 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { Loader } from '../../components/common/Loader';
-import { getServiceById, createService, updateService } from '../../services/api';
+import SingleImageField from './SingleImageField';
+import { getServiceCardById, createServiceCard, updateServiceCard } from '../../services/api';
 
-const emptyForm = { title: '', slug: '', description: '', icon: 'FiTool', price: '', order: 0, isActive: true };
-
-const slugify = (s) =>
-  s
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
+const emptyForm = { title: '', description: '', image: {}, order: 0, isActive: true };
 
 export default function AdminServiceForm() {
   const { id } = useParams();
@@ -25,8 +19,8 @@ export default function AdminServiceForm() {
 
   useEffect(() => {
     if (!isEdit) return;
-    getServiceById(id)
-      .then((data) => setForm({ ...emptyForm, ...data.service }))
+    getServiceCardById(id)
+      .then((data) => setForm({ ...emptyForm, ...data.card }))
       .finally(() => setLoading(false));
   }, [id, isEdit]);
 
@@ -35,22 +29,24 @@ export default function AdminServiceForm() {
     setForm((f) => ({ ...f, [field]: value }));
   };
 
+  const updateImage = (image) => setForm((f) => ({ ...f, image }));
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
     setError('');
 
-    const payload = { ...form, slug: form.slug || slugify(form.title), order: Number(form.order) || 0 };
+    const payload = { ...form, order: Number(form.order) || 0 };
 
     try {
       if (isEdit) {
-        await updateService(id, payload);
+        await updateServiceCard(id, payload);
       } else {
-        await createService(payload);
+        await createServiceCard(payload);
       }
-      navigate('/admin/services');
+      navigate('/admin/service-cards');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save service');
+      setError(err.response?.data?.message || 'Failed to save card');
     } finally {
       setSaving(false);
     }
@@ -66,21 +62,12 @@ export default function AdminServiceForm() {
 
   return (
     <AdminLayout>
-      <h1 className="text-xl font-bold text-slate-900 mb-6">{isEdit ? 'Edit Service' : 'Add Service'}</h1>
+      <h1 className="text-xl font-bold text-slate-900 mb-6">{isEdit ? 'Edit Card' : 'Add Card'}</h1>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-slate-200 p-6 max-w-2xl space-y-4">
         <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="Title">
-            <input required value={form.title} onChange={update('title')} className="input" />
-          </Field>
-          <Field label="Slug (auto-generated if left blank)">
-            <input value={form.slug} onChange={update('slug')} className="input" placeholder="auto from title" />
-          </Field>
-          <Field label="Price / pricing note">
-            <input value={form.price} onChange={update('price')} className="input" placeholder="Starting at Rs 499" />
-          </Field>
-          <Field label="Icon (react-icons/fi name)">
-            <input value={form.icon} onChange={update('icon')} className="input" placeholder="FiTool" />
+          <Field label="Title (optional)">
+            <input value={form.title} onChange={update('title')} className="input" placeholder="Quality Testing" />
           </Field>
           <Field label="Display order">
             <input type="number" value={form.order} onChange={update('order')} className="input" />
@@ -95,6 +82,8 @@ export default function AdminServiceForm() {
           <textarea required value={form.description} onChange={update('description')} className="input h-24 resize-none" />
         </Field>
 
+        <SingleImageField label="Card image" value={form.image} onChange={updateImage} folder="content" />
+
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         <div className="flex gap-3">
@@ -103,11 +92,11 @@ export default function AdminServiceForm() {
             disabled={saving}
             className="bg-brand-blue text-white font-semibold px-6 py-2.5 rounded hover:bg-brand-blueDark disabled:opacity-60"
           >
-            {saving ? 'Saving…' : 'Save Service'}
+            {saving ? 'Saving…' : 'Save Card'}
           </button>
           <button
             type="button"
-            onClick={() => navigate('/admin/services')}
+            onClick={() => navigate('/admin/service-cards')}
             className="px-6 py-2.5 rounded border border-slate-200 hover:bg-slate-50"
           >
             Cancel

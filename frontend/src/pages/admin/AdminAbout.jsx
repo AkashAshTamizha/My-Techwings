@@ -1,106 +1,149 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import AdminLayout from '../../components/admin/AdminLayout';
-import ConfirmDialog from '../../components/admin/ConfirmDialog';
 import { Loader } from '../../components/common/Loader';
-import { getAllAboutAdmin, deleteAboutSection } from '../../services/api';
+import SingleImageField from './SingleImageField';
+import { getAboutContentAdmin, updateAboutContent } from '../../services/api';
 
+const emptyForm = {
+  heroHeading: '',
+  storyTitle: '',
+  storyDescription: '',
+  storyImage: {},
+  repairTitle: '',
+  repairDescription: '',
+  repairServicesList: '',
+  repairImage: {},
+  enquiryButtonText: '',
+  enquiryButtonLink: '',
+};
+
+// The About page's layout (hero / "Story about us" / "What We Repair") is
+// fixed on the frontend, so there's nothing to add or delete here — just
+// one form for the single content document behind that layout.
 export default function AdminAbout() {
-  const [sections, setSections] = useState([]);
+  const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(true);
-  const [pendingDelete, setPendingDelete] = useState(null);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [saved, setSaved] = useState(false);
 
-  const load = () => {
-    setLoading(true);
-    getAllAboutAdmin()
-      .then((data) => setSections(data.sections))
+  useEffect(() => {
+    getAboutContentAdmin()
+      .then((data) => setForm({ ...emptyForm, ...data.about }))
       .finally(() => setLoading(false));
+  }, []);
+
+  const update = (field) => (e) => {
+    setForm((f) => ({ ...f, [field]: e.target.value }));
+    setSaved(false);
   };
 
-  useEffect(load, []);
+  const updateImage = (field) => (image) => {
+    setForm((f) => ({ ...f, [field]: image }));
+    setSaved(false);
+  };
 
-  const confirmDelete = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setError('');
+    setSaved(false);
+
     try {
-      await deleteAboutSection(pendingDelete._id);
-      setSections((list) => list.filter((s) => s._id !== pendingDelete._id));
+      const data = await updateAboutContent(form);
+      setForm({ ...emptyForm, ...data.about });
+      setSaved(true);
     } catch (err) {
-      setError('Failed to delete section');
+      setError(err.response?.data?.message || 'Failed to save About page content');
     } finally {
-      setPendingDelete(null);
+      setSaving(false);
     }
   };
 
+  if (loading) {
+    return (
+      <AdminLayout>
+        <Loader />
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-slate-900">About Page</h1>
-        <Link
-          to="/admin/about/new"
-          className="flex items-center gap-2 bg-brand-blue text-white text-sm font-semibold px-4 py-2 rounded hover:bg-brand-blueDark"
+      <h1 className="text-xl font-bold text-slate-900 mb-6">About Page</h1>
+
+      <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
+        {/* Hero */}
+        <section className="bg-white rounded-lg border border-slate-200 p-6 space-y-4">
+          <h2 className="font-semibold text-slate-900">Hero heading</h2>
+          <Field label="Heading (wrap text in ** ** to highlight it in blue, e.g. Over **5+** Years)">
+            <textarea value={form.heroHeading} onChange={update('heroHeading')} className="input h-20 resize-none" />
+          </Field>
+        </section>
+
+        {/* Story about us */}
+        <section className="bg-white rounded-lg border border-slate-200 p-6 space-y-4">
+          <h2 className="font-semibold text-slate-900">Story about us</h2>
+          <Field label="Title">
+            <input value={form.storyTitle} onChange={update('storyTitle')} className="input" />
+          </Field>
+          <Field label="Description">
+            <textarea value={form.storyDescription} onChange={update('storyDescription')} className="input h-32 resize-none" />
+          </Field>
+          <SingleImageField label="Story image" value={form.storyImage} onChange={updateImage('storyImage')} folder="content" />
+        </section>
+
+        {/* What We Repair */}
+        <section className="bg-white rounded-lg border border-slate-200 p-6 space-y-4">
+          <h2 className="font-semibold text-slate-900">What We Repair</h2>
+          <Field label="Title">
+            <input value={form.repairTitle} onChange={update('repairTitle')} className="input" />
+          </Field>
+          <Field label="Description">
+            <textarea value={form.repairDescription} onChange={update('repairDescription')} className="input h-24 resize-none" />
+          </Field>
+          <Field label="Repair services list (separate each item with a | )">
+            <textarea
+              value={form.repairServicesList}
+              onChange={update('repairServicesList')}
+              className="input h-24 resize-none"
+              placeholder="Screen Replacement | Keyboard Replacement | SSD & RAM Upgrade"
+            />
+          </Field>
+          <SingleImageField label="Repair image" value={form.repairImage} onChange={updateImage('repairImage')} folder="content" />
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Field label="Enquiry button text">
+              <input value={form.enquiryButtonText} onChange={update('enquiryButtonText')} className="input" />
+            </Field>
+            <Field label="Enquiry button link">
+              <input value={form.enquiryButtonLink} onChange={update('enquiryButtonLink')} className="input" placeholder="/contact" />
+            </Field>
+          </div>
+        </section>
+
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        {saved && <p className="text-sm text-green-600">Saved.</p>}
+
+        <button
+          type="submit"
+          disabled={saving}
+          className="bg-brand-blue text-white font-semibold px-6 py-2.5 rounded hover:bg-brand-blueDark disabled:opacity-60"
         >
-          <FiPlus /> Add Section
-        </Link>
-      </div>
+          {saving ? 'Saving…' : 'Save Changes'}
+        </button>
+      </form>
 
-      {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
-
-      {loading ? (
-        <Loader />
-      ) : (
-        <div className="bg-white rounded-lg border border-slate-200 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-left text-slate-500">
-              <tr>
-                <th className="px-4 py-3">Heading</th>
-                <th className="px-4 py-3">Body</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {sections.map((s) => (
-                <tr key={s._id}>
-                  <td className="px-4 py-3 font-medium text-slate-900">{s.heading}</td>
-                  <td className="px-4 py-3 text-slate-500 max-w-sm truncate">{s.body}</td>
-                  <td className="px-4 py-3">
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded ${s.isActive ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-                      {s.isActive ? 'Active' : 'Hidden'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex justify-end gap-3">
-                      <Link to={`/admin/about/${s._id}/edit`} className="text-brand-blue hover:text-brand-blueDark" aria-label="Edit">
-                        <FiEdit2 />
-                      </Link>
-                      <button onClick={() => setPendingDelete(s)} className="text-red-600 hover:text-red-700" aria-label="Delete">
-                        <FiTrash2 />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {sections.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="px-4 py-10 text-center text-slate-400">
-                    No sections yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {pendingDelete && (
-        <ConfirmDialog
-          title="Delete section?"
-          message={`"${pendingDelete.heading}" will be permanently removed.`}
-          onConfirm={confirmDelete}
-          onCancel={() => setPendingDelete(null)}
-        />
-      )}
+      <style>{`.input { width: 100%; border: 1px solid #E2E8F0; border-radius: 6px; padding: 8px 12px; font-size: 14px; outline: none; } .input:focus { border-color: #2563EB; }`}</style>
     </AdminLayout>
+  );
+}
+
+function Field({ label, children }) {
+  return (
+    <label className="block text-sm">
+      <span className="block text-slate-600 mb-1">{label}</span>
+      {children}
+    </label>
   );
 }

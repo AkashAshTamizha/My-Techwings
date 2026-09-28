@@ -4,7 +4,7 @@ const AppError = require('./AppError');
 
 // Only these sub-folders are allowed so a caller can never write into an
 // arbitrary Cloudinary path via a crafted request body.
-const ALLOWED_FOLDERS = ['products', 'variants', 'files', 'slider'];
+const ALLOWED_FOLDERS = ['products', 'variants', 'files', 'slider', 'content'];
 
 function resolveFolder(folder) {
   const safe = ALLOWED_FOLDERS.includes(folder) ? folder : 'products';

@@ -312,7 +312,6 @@ export default function AdminProductForm() {
             <Field label="Tag (optional)">
               <select value={form.tag || ''} onChange={update('tag')} className="input">
                 <option value="">None</option>
-                <option value="NEW">NEW</option>
                 <option value="Refurbished">Refurbished</option>
                 <option value="Price Drop">Price Drop</option>
               </select>
