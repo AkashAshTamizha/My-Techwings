@@ -307,7 +307,7 @@ const sliders = [
 
 const contactInfo = [
   { type: 'address', label: 'Store Address', value: 'Chennai, Tamil Nadu', icon: 'FiMapPin', order: 1 },
-  { type: 'whatsapp', label: 'WhatsApp / Phone', value: '+91 94457 54129', icon: 'FiPhone', order: 2 },
+  { type: 'whatsapp', label: 'WhatsApp / Phone', value: '+91 xxxx xxx xxx', icon: 'FiPhone', order: 2 },
   { type: 'email', label: 'Support Email', value: 'support@jirehbyte.com', link: 'mailto:support@jirehbyte.com', icon: 'FiMail', order: 3 },
 ];
 

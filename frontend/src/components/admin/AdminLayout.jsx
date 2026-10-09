@@ -6,9 +6,6 @@ import { useAuth } from '../../context/AuthContext';
 const links = [
   { to: '/admin/products', label: 'Products', icon: <FiBox /> },
   { to: '/admin/sliders', label: 'Home Slider', icon: <FiImage /> },
-  { to: '/admin/services', label: 'Services', icon: <FiTool /> },
-  { to: '/admin/about', label: 'About Page', icon: <FiInfo /> },
-  { to: '/admin/contact', label: 'Contact Info', icon: <FiPhone /> },
   { to: '/admin/settings', label: 'Settings', icon: <FiSettings /> },
 ];
 

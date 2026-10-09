@@ -10,7 +10,7 @@ const fallback = {
   heroHeading: 'Any question or remarks?',
   heroSubheading: 'Just write us a message!',
   getInTouchTitle: 'Get in Touch',
-  getInTouchDescription: '',
+  getInTouchDescription: 'Call, WhatsApp, Email, or walk in - We are Available 12 hours a day, 7 days a week. Drop us a message and we will get back to you as soon as possible.',
   phoneLabel: 'PHONE',
   phoneValue: '',
   emailLabel: 'EMAIL',
@@ -20,29 +20,13 @@ const fallback = {
 
 export default function Contact() {
   const [contact, setContact] = useState(fallback);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    getContactContent()
-      .then((data) => setContact({ ...fallback, ...data.contact }))
-      .catch(() => setContact(fallback))
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16">
-        <Loader />
-      </div>
-    );
-  }
 
   return (
     <div>
       {/* Hero */}
       <section className="bg-brand-bgHero py-16 px-4 sm:px-6 text-center">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900">{contact.heroHeading}</h1>
-        <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mt-1">{contact.heroSubheading}</p>
+        <p className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 mt-1">{contact.heroSubheading}</p>
       </section>
 
       {/* Get in Touch */}
@@ -72,11 +56,17 @@ export default function Contact() {
             </div>
           </div>
 
-          <div className="rounded-lg overflow-hidden bg-slate-200 aspect-[4/3]">
-            {contact.mapImage?.url && (
-              <img src={contact.mapImage.url} alt="Our location" className="w-full h-full object-cover" />
-            )}
-          </div>
+
+<div className="rounded-lg overflow-hidden bg-slate-200 aspect-[4/3]">
+  <iframe
+    title="Our Business Location"
+    src="https://maps.google.com/maps?q=Chennai%2C%20Tamil%20Nadu%2C%20India&t=&z=15&ie=UTF8&iwloc=&output=embed"
+    className="w-full h-full border-0"
+    loading="lazy"
+    referrerPolicy="no-referrer-when-downgrade"
+    allowFullScreen
+  />
+</div>
         </div>
       </section>
     </div>

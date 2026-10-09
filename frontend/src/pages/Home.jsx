@@ -245,7 +245,7 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <WhyItem icon={<FiTag />} title="Best Price Guarantee" desc="We offer the best prices on top brands." />
             <WhyItem icon={<FiHeadphones />} title="Expert Support" desc="Get help from our product specialists anytime." />
-            <WhyItem icon={<FiRepeat />} title="Hassle-Free Returns" desc="30-day easy returns for peace of mind." />
+            <WhyItem icon={<FiRepeat />} title="Hassle-Free Returns" desc="3-day easy returns for peace of mind." />
             <WhyItem icon={<FiShield />} title="Extended Warranty" desc="Premium protection for your laptop." />
           </div>
         </div>

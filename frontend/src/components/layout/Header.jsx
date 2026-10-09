@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { FiSearch, FiMenu, FiChevronDown, FiX } from 'react-icons/fi';
+import useCategoryAvailability from '../../hooks/useCategoryAvailability';
+
+
 
 const navLinks = [
   { to: '/', label: 'Home' },
@@ -26,6 +29,7 @@ export default function Header() {
   const [query, setQuery] = useState('');
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+   const { isAvailable } = useCategoryAvailability();
   const navigate = useNavigate();
 
   const handleSearch = (e) => {
@@ -134,16 +138,19 @@ export default function Header() {
         {categoryOpen && (
           <div className="absolute left-0 right-0 top-full bg-white border-t border-slate-100 shadow-lg z-50 w-full">
             <div className="w-full flex flex-wrap items-center gap-3 px-4 sm:px-8 py-3">
-              {categories.map((c) => (
+              {categories.map((c) => {
+              const available = isAvailable(c.value);
+              return (
                 <Link
                   key={c.value}
-                  to={`/products?category=${encodeURIComponent(c.value)}`}
+                  to={available ? `/products?category=${c.value}` : `/coming-soon/${c.value}`}
+                  // to={`/products?category=${encodeURIComponent(c.value)}`}
                   onClick={() => setCategoryOpen(false)}
                   className="text-sm px-3 py-1.5 rounded border border-slate-200 hover:border-brand-blue hover:text-brand-blue transition-colors"
                 >
                   {c.label}
                 </Link>
-              ))}
+              )})}
             </div>
           </div>
         )}

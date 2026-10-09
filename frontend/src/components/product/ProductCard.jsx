@@ -27,39 +27,44 @@ export default function ProductCard({ product, variant = 'grid' }) {
       to={`/products/${product.slug}`}
       className="group block outline-none border border-slate-200 rounded-xl overflow-hidden bg-white hover:shadow-lg hover:-translate-y-0.5 transition-all"
     >
-      <div
-        className={`relative aspect-[4/3] flex items-center justify-center overflow-hidden ${
-          isRelated ? 'bg-white' : 'bg-gradient-to-br from-slate-50 to-blue-50'
-        }`}
-      >
-        {tags.length > 0 && (
-          <div className="absolute top-2 right-2 left-2 flex flex-wrap justify-end gap-1.5">
-            {tags.map((t) => (
-              <span
-                key={t}
-                className={`text-[11px] font-semibold px-2.5 py-1 rounded-full shadow-sm ${
-                  tagStyles[t] || 'bg-slate-800 text-white'
-                }`}
-              >
-                {t}
-              </span>
-            ))}
-          </div>
-        )}
-        {showImage ? (
-          <img
-            src={image}
-            alt={product.name}
-            className={`w-full h-full transition-transform ${
-              isRelated ? 'object-contain p-4' : 'object-contain p-6 group-hover:scale-105'
-            }`}
-            loading="lazy"
-            onError={() => setImgFailed(true)}
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200" />
-        )}
-      </div>
+    <div
+  className={`relative aspect-[4/3] flex items-center justify-center overflow-hidden ${
+    isRelated ? 'bg-white' : 'bg-gradient-to-br from-slate-50 to-blue-50'
+  }`}
+>
+  {/* BADGES - always on top */}
+  {tags.length > 0 && (
+    <div className="absolute top-3 right-3 z-30 flex flex-wrap justify-end gap-1.5 pointer-events-none">
+      {tags.map((t) => (
+        <span
+          key={t}
+          className={`text-[11px] font-semibold px-2.5 py-1 rounded-full shadow-sm whitespace-nowrap ${
+            tagStyles[t] || 'bg-slate-800 text-white'
+          }`}
+        >
+          {t}
+        </span>
+      ))}
+    </div>
+  )}
+
+  {/* IMAGE */}
+  {showImage ? (
+    <img
+      src={image}
+      alt={product.name}
+      className={`relative z-10 w-full h-full transition-transform ${
+        isRelated
+          ? 'object-contain p-4'
+          : 'object-contain p-6 group-hover:scale-105'
+      }`}
+      loading="lazy"
+      onError={() => setImgFailed(true)}
+    />
+  ) : (
+    <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200" />
+  )}
+</div>
 
       <div className="p-4">
         {product.category && (

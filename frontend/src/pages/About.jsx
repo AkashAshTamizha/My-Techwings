@@ -8,17 +8,26 @@ import { getAboutContent } from '../services/api';
 // /admin/about). Shown until that request resolves so the page never
 // flashes with schema defaults it doesn't actually have yet.
 const fallback = {
-  heroHeading: 'Bringing over **5+** Years of Trusted experience to Chennai for the past **3+** Years.',
+  heroHeading: 'Bringing over 5+ Years of Trusted experience to Chennai for the past 3+ Years.',
   storyTitle: 'Story about us',
-  storyDescription: '',
-  storyImage: {},
+  storyDescription: "Hipster ipsum tattooed brunch I'm baby. Pop-up belly tousled mustache chambray kinfolk jomo dsa neutra. Piz pop-up vegan meditation charcoal pork. Quinoa cray tattooed green activated skateboard listicle franzen axe. Church-key xoxo austin big af. Vexillologist polaroid haven't",
+  storyImage: {url:'https://res.cloudinary.com/dxpifhzni/image/upload/v1790299448/mytechwings/content/bslcwqmhf6j51huduib7.jpg'},
   repairTitle: 'What We Repair',
-  repairDescription: '',
-  repairServicesList: '',
-  repairImage: {},
+  repairDescription: "Complete laptop service, under one roof. From a cracked. screen to a dead motherboard every laptop repair, upgrade and maintenance service you need.",
+  repairServicesList: `Internal Board Repair | Screen Replacement | Keyboard
+Replacement | SSD & RAM Upgrade | Blue Screen Fix Adapter &
+DC Jack | Hinge & Panel Rework |
+Physical Damage Rework | Data
+Recovery | Wi-Fi & Network Fix | USB & Port Repair
+Camera Issue Fix | Speaker & Audio Fix | Password Unlocking |
+Linux/Windows Install |
+Charging Circuit Repair and etc...`,
+  repairImage: {url:'https://res.cloudinary.com/dxpifhzni/image/upload/v1790299454/mytechwings/content/zf1y5l5swdmdbgu0ghjl.jpg'},
   enquiryButtonText: 'Service Enquiry Form',
-  enquiryButtonLink: '/contact',
+  enquiryButtonLink: '/service',
 };
+
+
 
 // Renders "Bringing over **5+** Years..." with the **wrapped** portions in
 // the brand blue, mirroring the reference design's highlighted "5+" / "3+".
@@ -73,20 +82,24 @@ export default function About() {
   const [about, setAbout] = useState(fallback);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    getAboutContent()
-      .then((data) => setAbout({ ...fallback, ...data.about }))
-      .catch(() => setAbout(fallback))
-      .finally(() => setLoading(false));
-  }, []);
 
-  if (loading) {
-    return (
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16">
-        <Loader />
-      </div>
-    );
-  }
+
+
+
+  // useEffect(() => {
+  //   getAboutContent()
+  //     .then((data) => setAbout({ ...fallback, ...data.about }))
+  //     .catch(() => setAbout(fallback))
+  //     .finally(() => setLoading(false));
+  // }, []);
+
+  // if (loading) {
+  //   return (
+  //     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16">
+  //       <Loader />
+  //     </div>
+  //   );
+  // }
 
   const repairItems = about.repairServicesList
     ? about.repairServicesList.split('|').map((s) => s.trim()).filter(Boolean)

@@ -15,13 +15,6 @@ import AdminLogin from './pages/admin/AdminLogin';
 import AdminForgotPassword from './pages/admin/AdminForgotPassword';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminProductForm from './pages/admin/AdminProductForm';
-import AdminServices from './pages/admin/AdminServices';
-import AdminServiceForm from './pages/admin/AdminServiceForm';
-import AdminServiceCards from './pages/admin/AdminServiceCards';
-import AdminAbout from './pages/admin/AdminAbout';
-import AdminAboutForm from './pages/admin/AdminAboutForm';
-import AdminContact from './pages/admin/AdminContact';
-import AdminContactForm from './pages/admin/AdminContactForm';
 import AdminSliders from './pages/admin/AdminSliders';
 import AdminSliderForm from './pages/admin/AdminSliderForm';
 import AdminSettings from './pages/admin/AdminSettings';
@@ -116,89 +109,6 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/admin/services"
-          element={
-            <ProtectedRoute>
-              <AdminServices />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/service-cards"
-          element={
-            <ProtectedRoute>
-              <AdminServiceCards />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/service-cards/new"
-          element={
-            <ProtectedRoute>
-              <AdminServiceForm />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/service-cards/:id/edit"
-          element={
-            <ProtectedRoute>
-              <AdminServiceForm />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/admin/about"
-          element={
-            <ProtectedRoute>
-              <AdminAbout />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/about/new"
-          element={
-            <ProtectedRoute>
-              <AdminAboutForm />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/about/:id/edit"
-          element={
-            <ProtectedRoute>
-              <AdminAboutForm />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/admin/contact"
-          element={
-            <ProtectedRoute>
-              <AdminContact />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/contact/new"
-          element={
-            <ProtectedRoute>
-              <AdminContactForm />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/contact/:id/edit"
-          element={
-            <ProtectedRoute>
-              <AdminContactForm />
-            </ProtectedRoute>
-          }
-        />
-
         <Route
           path="/admin/sliders"
           element={
